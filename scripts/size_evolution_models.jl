@@ -11,7 +11,9 @@ using KissMCMC, LaTeXStrings
 # ------------------------------------------ #
 
 model_runs = Dict()
-n_iterations = 10^4 # at least 10^6 for nice distribution in plot
+if !@isdefined n_iterations
+    n_iterations = 5*10^4 # at least 10^6 for nice distribution in plot
+end
 
 for date in ["0908", "2108"]
 
