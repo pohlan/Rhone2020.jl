@@ -2,6 +2,7 @@
 
 using PyPlot
 figuredir = "../../products/paper_figures/"
+tabledir = "../../products/derived_data/"
 
 # #### Fig.1: Map
 include("../scripts/overview-map.jl")
@@ -24,7 +25,7 @@ R.plot_model_outputs(mid_309_265, model_runs)
 savefig(figuredir * "figure4.png")
 
 # #### Fig. 5: heat transfer parameters
-R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured)
+fig = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured)[1]
 savefig(figuredir * "figure5.png")
 
 # ### Figures from supllementary material
@@ -34,5 +35,18 @@ R.plot_opening_closure(mid_309_265, model_runs)
 savefig(figuredir * "figure_s1.png")
 
 # #### Fig. S2: heat transfer parameters extended, with estimated surface temperature
-R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
 savefig(figuredir * "figure_s2.png")
+# save tale to text file
+write(tabledir * "table_s1.tex", "% Contens of Table S1\n" * table)
+
+# Also save table S2 (produced in size_evolution_models.jl):
+write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table_s2)
+
+# CSV files
+using DelimitedFiles
+for (fl, daystr) in [("SQ_09_08_2020.csv", "0908"), ("SQ_21_08_2020.csv", "2108")]
+    writedlm(tabledir * fl, ["Time" "S [m^2]" "std_S" "Q [m^3/s]" "std_Q" "dphi/dz [Pa/m]" "std dphi/dz" "f" "std f";
+                             mid_309_265[daystr][:t_inj] mean.(mid_309_265[daystr][:S]) std.(mid_309_265[daystr][:S]) mean.(ctd265[daystr][:Q]) std.(ctd265[daystr][:Q]) mean.(mid_309_265[daystr][:dphi_dz]) std.(mid_309_265[daystr][:dphi_dz]) mean.(mid_309_265[daystr][:f]) std.(mid_309_265[daystr][:f])],
+             ", ")
+end

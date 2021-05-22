@@ -93,35 +93,37 @@ for date in ["0908", "2108"]
 
 end
 
+## Table S2
 ## print latex table of total opening rate, opening rate due to sensible heat and closure rate
-# for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
-#                                  [:dSdt_ct, :dSdt_sensible_ct],
-#                                  [L"Total opening rate ($\mathrm{m^2\,s^{-1}}$)", L"Opening rate due to sensible heat ($\mathrm{m^2\,s^{-1}}$)"])
-#     for date in ["0908", "2108"]
-#         if date == "0908"
-#             o = description
-#         else
-#             o = ""
-#         end
-#         values_ct = only(mean(model_runs[date][c_t], dims=1))
-#         values_MCMC = only(mean(
-#                     [ bootstrap(
-#                         Particles([model_runs[date][MCMC][i][k] for i in 1:length(model_runs[date][MCMC])]),
-#                         n_partcl)
-#                       for k in 1:length(model_runs[date][MCMC][1]) ]
-#                     , dims=1))
-#         if date == "0908"
-#             o = o * " & " * string(mean(values_ct) ± std(values_ct)) * " & " * string(mean(values_MCMC) ± std(values_MCMC)) * "\\\\ \n"
-#         else
-#             o = o * " & \\textbf{" * string(mean(values_ct) ± std(values_ct)) * "} & \\textbf{" * string(mean(values_MCMC) ± std(values_MCMC)) * "} \\\\ \n"
-#         end
-#         print(o)
-#     end
-# end
-# print("\\hline \n")
-# closure_rate = only(mean(model_runs["0908"][:closure], dims=1))
-# o = L"Closure rate ($\mathrm{m^2\,s^{-1}}$)" * " & \\multicolumn{2}{" * string(mean(closure_rate) ± std(closure_rate)) * "} \\\\ \n"
-# print(o)
-# closure_rate = only(mean(model_runs["2108"][:closure], dims=1))
-# o = " & \\multicolumn{2}{\\textbf{" * string(mean(closure_rate) ± std(closure_rate)) * "}} \\\\ \n"
-# print(o)
+table_s2 = ""
+for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
+                                 [:dSdt_ct, :dSdt_sensible_ct],
+                                 [L"Total opening rate ($\mathrm{m^2\,s^{-1}}$)", L"Opening rate due to sensible heat ($\mathrm{m^2\,s^{-1}}$)"])
+    for date in ["0908", "2108"]
+        if date == "0908"
+            o = description
+        else
+            o = ""
+        end
+        values_ct = only(mean(model_runs[date][c_t], dims=1))
+        values_MCMC = only(mean(
+                    [ bootstrap(
+                        Particles([model_runs[date][MCMC][i][k] for i in 1:length(model_runs[date][MCMC])]),
+                        n_partcl)
+                      for k in 1:length(model_runs[date][MCMC][1]) ]
+                    , dims=1))
+        if date == "0908"
+            o = o * " & " * string(mean(values_ct) ± std(values_ct)) * " & " * string(mean(values_MCMC) ± std(values_MCMC)) * "\\\\ \n"
+        else
+            o = o * " & \\textbf{" * string(mean(values_ct) ± std(values_ct)) * "} & \\textbf{" * string(mean(values_MCMC) ± std(values_MCMC)) * "} \\\\ \n"
+        end
+        table_s2 *= o
+    end
+end
+table_s2 *= "\\hline \n"
+closure_rate = only(mean(model_runs["0908"][:closure], dims=1))
+o = L"Closure rate ($\mathrm{m^2\,s^{-1}}$)" * " & \\multicolumn{2}{" * string(mean(closure_rate) ± std(closure_rate)) * "} \\\\ \n"
+table_s2 *= o
+closure_rate = only(mean(model_runs["2108"][:closure], dims=1))
+o = " & \\multicolumn{2}{\\textbf{" * string(mean(closure_rate) ± std(closure_rate)) * "}} \\\\ \n"
+table_s2 *= o

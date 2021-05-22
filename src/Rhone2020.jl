@@ -1734,6 +1734,7 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
         figure(figsize=(5,10))
     end
 
+    table = ""
     for (sp,para) in enumerate(paras)
         out = []
         lab,p = para
@@ -1804,12 +1805,12 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
         end
         text(1.05, 1.0, panellabs[sp], transform=ax.transAxes, ha="left", va="top")
         # latex table
-        print(join(out, "\\\\ \n"))
-        print("\\\\ \n")
+        out = join(out, "\\\\ \n")
+        table = table * out * "\\\\ \n"
     end
     xticks(1:length(xticklabs), [uppercasefirst(string(xl)) for xl in xticklabs], rotation = -40, rotation_mode="anchor", ha="left")
     tight_layout()
-    gcf()
+    return gcf(), table
 end
 
 # Functions or making map (Fig. 1 in paper)
