@@ -9,7 +9,7 @@ This repository contains the processing of data from experiments in artificial m
 - `heat_transfer.jl`: calculates all thermodynamic variables (e.g. equilibrium offset-temperature)
 - `paper_figures.jl`: produces figures for paper and supplements as well as table and CSV files of derived quantities and saves them in the `products` folder); uses `overviewmap.jl` to produce Fig. 1 in the paper
 - `master.jl`: runs all the scripts
--
+
 #### `additional_figures`
 This folder contains julia files used to produce the `.pdf` files in the `products/additional_figures` folder. The figures included in these documents show raw data, results from intermediate steps and results plotted in different ways as in the paper.
 - `raw_data.jl`: raw data of the CTDs (conductivity, temperature, pressure)
