@@ -1232,7 +1232,7 @@ function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot)
         if n == 0
             text(2.1, 1.6, L"\bf{AM15}",fontsize=17, transform=ax.transAxes, ha="left", va="top")
             text(0.1, 0.9, L"\bf{a}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.8, L"$\partial \phi /\partial z\,\mathrm{(mH_2O/m)}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
+            text(ylabelpad, 0.8, L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
         else
             tick_params(axis="y", labelcolor="w")
         end
