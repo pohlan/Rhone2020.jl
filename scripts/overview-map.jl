@@ -5,10 +5,7 @@
 # - gdal_merge.py
 # used coordinate system: CH1903+/LV95
 
-cd(@__DIR__)
 using Rhone2020
-# using Plots
-# pyplot()
 const R20 = Rhone2020
 
 import PyPlot
@@ -64,9 +61,9 @@ using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 # ------------------------------------------ #
 
 
-fielddir = "../../data/geodata/field_data/"
-ethdir = "../../data/geodata/research_collection_ethz/"
-swisstopodir = "../../data/geodata/swisstopo/"
+fielddir = joinpath(@__DIR__, "../../data/geodata/field_data/")
+ethdir = joinpath(@__DIR__, "../../data/geodata/research_collection_ethz/")
+swisstopodir = joinpath(@__DIR__, "../../data/geodata/swisstopo/")
 
 # shapefile glacier outline
 shpfile_outline = ethdir * "outline_rhonegletscher/Summary.shp"

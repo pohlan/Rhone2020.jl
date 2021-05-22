@@ -1,8 +1,6 @@
 # ------------------------------------------ #
 #                   Importing                #
 # ------------------------------------------ #
-
-cd(@__DIR__)
 using KissMCMC, LaTeXStrings
 
 
@@ -13,6 +11,10 @@ using KissMCMC, LaTeXStrings
 model_runs = Dict()
 if !@isdefined n_iterations
     n_iterations = 5*10^4 # at least 10^6 for nice distribution in plot
+end
+
+if !@isdefined use_progress_meter
+    use_progress_meter = true # shows nice progress bar; but hide it for Literate.jl
 end
 
 for date in ["0908", "2108"]
@@ -40,7 +42,9 @@ for date in ["0908", "2108"]
     logposterior = R.make_logpdf(date, mid_309_265, [dTmin, dTmax]);
 
     # emcee MCMC sampler:
-    thetas, accept_ratioe, logdensities, blobs = emcee(logposterior, make_theta0s(theta0, [mean.(Sinit_0), Sinit_std], logposterior, 6, hasblob=true), niter=n_iterations, hasblob=true);
+    thetas, accept_ratioe, logdensities, blobs = emcee(logposterior, make_theta0s(theta0, [mean.(Sinit_0), Sinit_std],
+                                                                                  logposterior, 6, hasblob=true),
+                                                       niter=n_iterations, hasblob=true, use_progress_meter=use_progress_meter)
     thetas, accept_ratioe, logdensities, blobs = squash_walkers(thetas, accept_ratioe, logdensities, blobs); # puts all walkers into one
 
     out[:dTdz_MCMC] = [thetas[k][1] for k in 1:length(thetas)];
@@ -89,7 +93,7 @@ for date in ["0908", "2108"]
 
 end
 
-# print latex table of total opening rate, opening rate due to sensible heat and closure rate
+## print latex table of total opening rate, opening rate due to sensible heat and closure rate
 # for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
 #                                  [:dSdt_ct, :dSdt_sensible_ct],
 #                                  [L"Total opening rate ($\mathrm{m^2\,s^{-1}}$)", L"Opening rate due to sensible heat ($\mathrm{m^2\,s^{-1}}$)"])

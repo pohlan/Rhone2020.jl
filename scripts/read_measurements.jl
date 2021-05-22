@@ -2,9 +2,8 @@
 #  Import functions defined in Rhone2020.jl  #
 # ------------------------------------------ #
 
-cd(@__DIR__);
 using Pkg;
-Pkg.activate("..");
+Pkg.activate(joinpath(@__DIR__, ".."))
 using Rhone2020;
 const R = Rhone2020;
 
@@ -174,7 +173,7 @@ ctd145["2108"][:depth], ctd309["2108"][:depth], ctd265["2108"][:depth] = Particl
 # ------------------------------------------ #
 
 # get functions converting conductivities to concentrations as well as shift of temperature sensors from 0°C
-include("calibration.jl")
+include(joinpath(@__DIR__,"calibration.jl"))
 e_T = 0.05 # °C, error of temperature measurements introduced by calibration (otherwise it would be 0.1°C for PT sensor)
 
 

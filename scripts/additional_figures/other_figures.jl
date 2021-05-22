@@ -1,8 +1,13 @@
-# # Figures neither in the paper nor in the supplements
+# # Figures neither in the paper nor in the supplement
 #
 
-include("../master.jl"); #hide
 using PyPlot #hide
+
+include("../read_measurements.jl"); #hide
+include("../derive_quantities.jl"); #hide
+use_progress_meter = false #hide
+include("../size_evolution_models.jl"); #hide
+include("../heat_transfer.jl"); #hide
 
 # ## Moody plot
 #
@@ -21,7 +26,7 @@ xscale("log") #hide
 yscale("log") #hide
 gcf() #hide
 
-#  ## Thermodynamic variables
+# ## Thermodynamic variables
 #
 # These plots are based on the same data as Figure 5 in the paper but instead of daily averages the values for the individual tracer experiments are shown.
 
