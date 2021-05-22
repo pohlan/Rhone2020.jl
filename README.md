@@ -2,24 +2,19 @@
 
 This repository contains the processing of data from experiments in artificial moulins on Rhonegletscher in 2020. The folders are structured as follows.
 
-### Scripts
-- `discharge_flowspeed.jl`: computes discharges and flowspeeds; uses `fit_calibration.jl` for the conductivity-concentration conversion.
-- `friction_cross_section.jl`: loads data from the other pressure sensors and calculates friction parameter, the cross-sectional area and the Reynolds number. `discharge_flowspeed.jl` needs to be run in advance.
-- `master.jl`: computes all parameters by running `discharge_flowspeed.jl` and `fricion_cross_section.jl` (no plotting)
-- `not_working.jl`: some failed tries to get a good stage-discharge relation for continuous discharge.
+## Scripts
+- `read_measurements.jl`: loads data from the sensors and creates dictionaries with manually measured quantities (such as mass of salt tracer); uses `calibration.jl` for the conductivity-concentration conversion and the temperature correction
+- `derive_quantities.jl`: derives the hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor and manning roughness
+- `size_evolution_models.jl`: runs both the ct-model and the Bayesian-model
+- `heat_transfer.jl`: calculates all thermodynamic variables (e.g. equilibrium offset-temperature)
+- `paper_figures.jl`: produces figures for paper and supplements as well as table and CSV files of derived quantities and saves them in the `products` folder); uses `overviewmap.jl` to produce Fig. 1 in the paper
+- `master.jl`: runs all the scripts
+-
+#### `additional_figures`
+This folder contains julia files used to produce the `.pdf` files in the `products/additional_figures` folder. The figures included in these documents show raw data, results from intermediate steps and results plotted in different ways as in the paper.
+- `raw_data.jl`: raw data of the CTDs (conductivity, temperature, pressure)
+- `calibration_plots.jl`: conductivity and temperature calibrations
+- `derived_quantities.jl`: same quantities are plotted as Fig. 3 in the paper but for all tracer experiments not only the one we selected
+- `other_figures.jl`: Moody plot and some plots that show heat transfer data (Figure 5 in paper) differently
 
-### Data
-- `DCX22_CTD`: one file for each CTD on each day of measurements; the only sensors that are relevant for the paper
-- `DCX22_pressure`: one file for each time the sensor was installed in the borehole (mostly at night)
-- `Stage_pressure`: files for arbitrary time periods; sensor was installed upstream of the moulins
-- `WTW`: handheld device for conductivity and temperature, installed a few times at 1 to 2 m depth
-
-### Plots
-This folder contains markdown (`.md`) files of all the plots and the corresponding julia (`.jl`) files to create them
-- `raw_data.xx`: raw data of the CTDs (conductivity, temperature, pressure) and the other pressure sensors
-- `calibration_plots.xx`: conductivity and temperature calibrations
-- `results.xx`:
-  - all the derived quantities for data points that were considered to be 'reasonable' (see `all_data.xx` for justification)
-  - Moody plot
-  - evolution of the cross-sectional area over time vs. calculations from simple model
-- `all_data.xx`: shows results of all data points, also the ones which were not considered to be 'reasonable'
+- `make.jl`: produces the `.pdf` files and saves them in the `products/additional_figures` folder.
