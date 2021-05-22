@@ -1,11 +1,4 @@
 # ------------------------------------------ #
-#          Set working directory             #
-# ------------------------------------------ #
-
-cd(@__DIR__)
-
-
-# ------------------------------------------ #
 #                  Constants                 #
 # ------------------------------------------ #
 Pr = 13.5
@@ -81,7 +74,7 @@ for date in days
     T_ct = ct * mid_309_265[date][:p_mean]
 
     # Data using output of Bayesian-model: dtauw_dz = dTw_dz - dTmelt_dz, the first term comes from the MCMC runs
-    dtauw_dz = bootstrap(Particles(model_runs[date][:dTdz_MCMC]), n_partcl) .-  model_runs[date][:dTdz_ct]  # first term has to be converted from array to particles
+    local dtauw_dz = bootstrap(Particles(model_runs[date][:dTdz_MCMC]), n_partcl) .-  model_runs[date][:dTdz_ct]  # first term has to be converted from array to particles
 
     # Temperature measurements
     i = indexin(DateTime.(mid_309_265[date][:t_inj]), DateTime.(ctd309[date][:t]))  # extract the indices where there was a tracer experiment

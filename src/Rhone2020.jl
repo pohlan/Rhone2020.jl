@@ -1,3 +1,4 @@
+__precompile__(false)
 module Rhone2020
 
 
@@ -35,13 +36,21 @@ const A = 2.4e-24 # creep parameter, 1/(s*Pa^3), for 0°C
 const n = 3 # flow law exponent
 const atm = 101.325e3 # standard pressure in Pa (where melting temperature is 0°C)
 
-# Sample size for uncertainty propagation with MonteCarloMeasurements.jl
-n_partcl = 10 # 20000 used for paper because Fig. 4 looks nicer then (but takes some time), 2000 for plots in data collection
+# directory where the data resides
+const datadir = joinpath(@__DIR__, "../../data/")
 
-# define ct as a uniform distribution between the two literature values
-ct = Particles(n_partcl, Uniform(ct_air, ct_pure))
+"Function to (re)set number of particles used in MC uncertainty propagation"
+function set_n_partcl(n)
+    # Sample size for uncertainty propagation with MonteCarloMeasurements.jl
+    global n_partcl = n # 20000 used for paper because Fig. 4 looks nicer then (but takes some time), 2000 for plots in data collection
+    # define ct as a uniform distribution between the two literature values
+    global ct = Particles(n_partcl, Uniform(ct_air, ct_pure))
+    return nothing
+end
+set_n_partcl(1000)
 
-export rhow, g, mu, cw, ct, ct_pure, ct_air, n_partcl # usable outside Rhone2020.jl
+# export to make easily accessible outside of module Rhone2020.jl
+export rhow, g, mu, cw, ct, ct_pure, ct_air, n_partcl, set_n_partcl
 
 # ----------------------------------------------------------------- #
 #                                                                   #
@@ -76,54 +85,7 @@ function download_file_to_dir(url, destination_dir=datadir; force_download=false
     return destination_file
 end
 
-const glaziodir = "$(homedir())/itet-stor/glazio/projects/88009-VAW_R-channel_Rhone/03_data/"
-const datadir = joinpath(@__DIR__, "../../data/")
 
-"""
-Download all data from glazio to Rhone2020/data folder.
-"""
-function download_all(; force=false)
-    ctd = readdir(joinpath(glaziodir, "DCX22_CTD/XL"))
-    pressure1 = readdir(joinpath(glaziodir, "DCX22_pressure/XL"))
-    pressure2 = readdir(joinpath(glaziodir, "Stage_pressure/XL"))
-    if !isdir(joinpath(datadir, "DCX22_CTD"))
-        mkpath(joinpath(datadir, "DCX22_CTD"))
-    end
-    if !isdir(joinpath(datadir, "DCX22_pressure"))
-        mkpath(joinpath(datadir, "DCX22_pressure"))
-    end
-    if !isdir(joinpath(datadir, "Stage_pressure"))
-        mkpath(joinpath(datadir, "Stage_pressure"))
-    end
-    if !isdir(joinpath(datadir, "WTW"))
-        mkpath(joinpath(datadir, "WTW"))
-    end
-
-    for f in ctd
-        download_file("file://" * glaziodir * "DCX22_CTD/XL/$f",
-                       joinpath(datadir, "DCX22_CTD/$f"); force_download=force)
-    end
-    for f in pressure1
-        download_file("file://" * glaziodir * "DCX22_pressure/XL/$f",
-                       joinpath(datadir, "DCX22_pressure/$f"); force_download=force)
-    end
-    for f in pressure2
-        download_file("file://" * glaziodir * "Stage_pressure/XL/$f",
-                       joinpath(datadir, "Stage_pressure/$f"); force_download=force)
-    end
-
-    download_file("file://" * glaziodir * "WTW/AD876217.CSV",
-                       joinpath(datadir, "WTW/AD876217.CSV"); force_download=force)
-
-end
-
-# function __init__() # this function is automatically called with $using Rhone2020
-#     try
-#         download_all()
-#     catch e
-#         @warn "Failed to download data from $glaziodir with error $e"
-#     end
-# end
 
 """
     read_WTW(filename)
@@ -1270,7 +1232,7 @@ function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot)
         if n == 0
             text(2.1, 1.6, L"\bf{AM15}",fontsize=17, transform=ax.transAxes, ha="left", va="top")
             text(0.1, 0.9, L"\bf{a}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.8, L"$\partial \phi /\partial z\,\mathrm{(mH_2O/m)}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
+            text(ylabelpad, 0.8, L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
         else
             tick_params(axis="y", labelcolor="w")
         end
@@ -1772,6 +1734,7 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
         figure(figsize=(5,10))
     end
 
+    table = ""
     for (sp,para) in enumerate(paras)
         out = []
         lab,p = para
@@ -1842,12 +1805,12 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
         end
         text(1.05, 1.0, panellabs[sp], transform=ax.transAxes, ha="left", va="top")
         # latex table
-        print(join(out, "\\\\ \n"))
-        print("\\\\ \n")
+        out = join(out, "\\\\ \n")
+        table = table * out * "\\\\ \n"
     end
     xticks(1:length(xticklabs), [uppercasefirst(string(xl)) for xl in xticklabs], rotation = -40, rotation_mode="anchor", ha="left")
     tight_layout()
-    gcf()
+    return gcf(), table
 end
 
 # Functions or making map (Fig. 1 in paper)

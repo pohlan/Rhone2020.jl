@@ -5,10 +5,7 @@
 # - gdal_merge.py
 # used coordinate system: CH1903+/LV95
 
-cd(@__DIR__)
 using Rhone2020
-# using Plots
-# pyplot()
 const R20 = Rhone2020
 
 import PyPlot
@@ -19,8 +16,8 @@ const Plt = PyPlot
 using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 
 # ------------------------------------------ #
-#             Download data & unzip          #
-#             not necessary anymore          #
+#             Download data directly from SwissTopo & unzip          #
+#             not necessary anymore as data is in zip-file          #
 # ------------------------------------------ #
 #
 # # surface DEM swisstopo SwissAlti3D (2m posting)
@@ -59,28 +56,14 @@ using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 # run(`unzip -o $zipfile_CH $folder_CH -d $destdir`) # why is this still in the folders?
 # shpfile_CH = joinpath(destdir, "BOUNDARIES_2021/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp")
 
-# # download shapefiles of surface streams from glazio
-# if !isdir(destdir * "/streams")
-#     mkdir(destdir * "/streams")
-#     for f in readdir(R20.glaziodir * "map_data/stream_coordinates")
-#         R20.download_file("file://" * R20.glaziodir * "map_data/stream_coordinates/" * f,
-#                            joinpath(destdir, "streams/" * f))
-#     end
-# end
-
-# download borehole coordinates from glazio
-# R20.download_file("file://" * R20.glaziodir * "map_data/BH_coordinates.csv",
-#                       joinpath(destdir, "BH_coordinates.csv"))
-
-
 # ------------------------------------------ #
 #          Load data from data folder        #
 # ------------------------------------------ #
 
 
-fielddir = "../../data/geodata/field_data/"
-ethdir = "../../data/geodata/research_collection_ethz/"
-swisstopodir = "../../data/geodata/swisstopo/"
+fielddir = joinpath(@__DIR__, "../../data/geodata/field_data/")
+ethdir = joinpath(@__DIR__, "../../data/geodata/research_collection_ethz/")
+swisstopodir = joinpath(@__DIR__, "../../data/geodata/swisstopo/")
 
 # shapefile glacier outline
 shpfile_outline = ethdir * "outline_rhonegletscher/Summary.shp"

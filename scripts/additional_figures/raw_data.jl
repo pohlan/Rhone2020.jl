@@ -26,10 +26,8 @@
 #
 # - 1x DCX-22AA stage sensor (installed a few metres upstream of artificial moulins), measuring pressure and temperature in the stream and the atmosphere
 
-cd(@__DIR__) #hide
-cd("../scripts") #hide
 using PyPlot #hide
-include("../read_measurements.jl"); #hide
+include(joinpath(@__DIR__, "../read_measurements.jl")); #hide
 
 # ### Example traces of conductivity
 #
