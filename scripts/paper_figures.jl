@@ -3,6 +3,8 @@
 using PyPlot
 figuredir = "../../products/paper_figures/"
 tabledir = "../../products/derived_data/"
+mkpath(figuredir)
+mkpath(tabledir)
 
 # #### Fig.1: Map
 include("../scripts/overview-map.jl")

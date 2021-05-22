@@ -5,8 +5,9 @@ cd(@__DIR__)
 pygui(false) # no interactive plots
 
 tmp_outputdir = "tmp"
-pdfdir = joinpath(@__DIR__, "../../../products/additional_figures/")
 mkpath(tmp_outputdir)
+pdfdir = joinpath(@__DIR__, "../../../products/additional_figures/")
+mkpath(pdfdir)
 # execute=true produces plots
 
 #Literate.markdown("paper_figures.jl", tmp_outputdir; execute=true, documenter=false)
