@@ -117,7 +117,7 @@ for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
         else
             o = o * " & \\textbf{" * string(mean(values_ct) ± std(values_ct)) * "} & \\textbf{" * string(mean(values_MCMC) ± std(values_MCMC)) * "} \\\\ \n"
         end
-        table_s2 *= o
+        global table_s2 *= o
     end
 end
 table_s2 *= "\\hline \n"
