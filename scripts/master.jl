@@ -1,6 +1,10 @@
 # first make sure that current working directory is scripts and not Rhone2020
 cd(@__DIR__)
-using Rhone2020, PyPlot
+using PyPlot
+using Pkg;
+Pkg.activate(joinpath(@__DIR__, ".."))
+using Rhone2020;
+const R = Rhone2020;
 
 ## settings for uncertainty propagation and MCMC:
 ind = 1 # set to 1 for faster processing, to 2 for paper

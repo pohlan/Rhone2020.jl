@@ -1,6 +1,5 @@
 # # Reproduce the figures from the paper and the supplements
 
-using PyPlot
 figuredir = "../../products/paper_figures/"
 tabledir = "../../products/derived_data/"
 mkpath(figuredir)

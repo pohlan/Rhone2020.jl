@@ -39,6 +39,9 @@ const atm = 101.325e3 # standard pressure in Pa (where melting temperature is 0Â
 # directory where the data resides
 const datadir = joinpath(@__DIR__, "../../data/")
 
+# export to make easily accessible outside of module Rhone2020.jl
+export rhow, g, mu, cw, ct, ct_pure, ct_air, n_partcl, set_n_partcl
+
 "Function to (re)set number of particles used in MC uncertainty propagation"
 function set_n_partcl(n)
     # Sample size for uncertainty propagation with MonteCarloMeasurements.jl
@@ -49,8 +52,6 @@ function set_n_partcl(n)
 end
 set_n_partcl(1000)
 
-# export to make easily accessible outside of module Rhone2020.jl
-export rhow, g, mu, cw, ct, ct_pure, ct_air, n_partcl, set_n_partcl
 
 # ----------------------------------------------------------------- #
 #                                                                   #

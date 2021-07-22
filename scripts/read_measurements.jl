@@ -2,11 +2,6 @@
 #  Import functions defined in Rhone2020.jl  #
 # ------------------------------------------ #
 
-using Pkg;
-Pkg.activate(joinpath(@__DIR__, ".."))
-using Rhone2020;
-const R = Rhone2020;
-
 using Dates, MonteCarloMeasurements;
 
 
