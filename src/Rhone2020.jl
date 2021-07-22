@@ -1117,6 +1117,95 @@ function plot_temp(date, ctd309, ctd265, range, error_T)
 end
 
 """
+Plot only closure rates of 09-Aug and 21-Aug
+"""
+function plot_closure(mid_309_265, model_runs)
+    rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+    rcParams["font.size"] = 14 # general
+    majorformatter = matplotlib.dates.DateFormatter("%H:%M")
+
+    figure(figsize=(8,5))
+    ax = subplot(1, 1, 1)
+    errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k+", mew=2, ms=8, label="09-Aug, positive")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g+", mew=2, ms=8, label="21-Aug, negative")
+    yscale("log")
+    xlabel("Time of the corresponding day")
+    ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
+    legend()
+    ax.xaxis.set_major_formatter(majorformatter)
+end
+
+
+"""
+Plot opening rates of ct-gradient and free-gradient model, as well as the frictional component which is the same for both
+"""
+function plot_opening(mid_309_265, model_runs)
+
+    output = Dict("0908" => Dict(),
+                  "2108" => Dict())
+    for date in ["0908", "2108"]
+        # the results from the MCMC runs need to be averaged first to obtain the most likely time series
+        output[date][:dSdt_MCMC] = mean(model_runs[date][:dSdt_MCMC])
+        output[date][:dSdt_ct] = model_runs[date][:dSdt_ct]
+        output[date][:dSdt_frictional] = model_runs[date][:dSdt_ct] .- model_runs[date][:dSdt_sensible_ct]
+    end
+
+    rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+    rcParams["font.size"] = 14 # general
+    majorformatter = matplotlib.dates.DateFormatter("%H:%M")
+    # majorlocator = matplotlib.dates.HourLocator(byhour=(11, 13, 15, 17))
+    figure(figsize=(16,5))
+
+    Patch = PyPlot.matplotlib.patches.Patch
+    custom_legend = [Patch(facecolor="black", alpha = 0.6),
+                     Patch(facecolor="royalblue", alpha = 0.6),
+                     Patch(facecolor="grey", alpha = 0.6)]
+
+    for (nd, (date, AM, lab)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"], [L"\bf{a}", L"\bf{b}"]))
+        ax = subplot(1, 2, nd)
+
+        model_colors = ["black", "royalblue", "grey"]
+        models = [:dSdt_ct, :dSdt_MCMC, :dSdt_frictional ]
+        model_means = []
+        for model in models
+            append!(model_means, mean(mean(output[date][model])))
+        end
+        sorting = sortperm(model_means)
+
+        cols = model_colors[sorting]
+        mods = models[sorting]
+
+        for p in length(cols):-1:1
+            if p == 1
+                fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
+            else
+                fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p-1]]), mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
+            end
+        end
+
+        ax.xaxis.set_major_formatter(majorformatter)
+
+
+        if date == "0908"
+            ylabel(L"Opening rate [$\mathrm{m^2/s}$]")
+        end
+        if date == "2108"
+            legend(custom_legend,
+                ("ct-gradient model, total",
+                 "free-gradient model, total",
+                 "frictional heat component"),
+                ncol = 1
+                )
+        end
+
+        xlabel("Time")
+        title(AM * ", " * date[1:2] * "-Aug")
+        text(-0.1, 1.05, lab, transform=ax.transAxes, ha="left", va="bottom", fontsize=19)
+    end
+    gcf()
+end
+
+"""
 Plot opening rates of ct-model and Bayesian-model vs. closure rates to compare their magnitudes
 """
 function plot_opening_closure(mid_309_265, model_runs)
