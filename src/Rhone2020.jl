@@ -674,7 +674,7 @@ Models the size evolution of S for given temperature gradients.
 Inputs:
 - mid -- dictionary holding derived values of test-section between ctd1 and ctd2, in particular Q, dphi/dz and the injection times
 - date -- the day for which the model is to be run, e.g. "0908" for 09 August
-- dT_dz -- temperature gradient constant in time; can eighter be a Float64 (used in MCMC of Bayesian-model) or Particles (used in ct-model)
+- dT_dz -- temperature gradient constant in time; can eighter be a Float64 (used in MCMC of free-gradient model) or Particles (used in ct-model)
 - S0 -- initial cross-sectional area, at time of first experiment; can eighter be a Float64
 
 Outputs:
@@ -708,7 +708,7 @@ end
 """
     make_logpdf(date, mid, dTdzrange)
 
-Returns a logarithmic probability density function as input for the Bayesian-model
+Returns a logarithmic probability density function as input for the free-gradient model
 
 Inputs:
 - date -- the day for which the model is to be run, e.g. "0908" for 09 August
@@ -1206,7 +1206,7 @@ function plot_opening(mid_309_265, model_runs)
 end
 
 """
-Plot opening rates of ct-model and Bayesian-model vs. closure rates to compare their magnitudes
+Plot opening rates of ct-model and free-gradient model vs. closure rates to compare their magnitudes
 """
 function plot_opening_closure(mid_309_265, model_runs)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
@@ -1236,7 +1236,7 @@ function plot_opening_closure(mid_309_265, model_runs)
         else
             legend((a1, a2, a3, a4),
                 (L"opening $c_{t}$-model",
-                 "opening Bayesian-model",
+                 "opening free-gradient model",
                 "creep closure positive",
                 "creep closure netagive"),
                 ncol = 1
@@ -1523,7 +1523,7 @@ function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot)
 end
 
 """
-Plot evolution of cross-sectional area according to measurements, ct-model and Bayesian-model;
+Plot evolution of cross-sectional area according to measurements, ct-model and free-gradient model;
 Plot corresponding distributions of temperature gradient
 Fig. 4 in the paper.
 """
@@ -1587,7 +1587,7 @@ function plot_model_outputs(mid_309_265, model_runs)
         title(date[1:2] * "-Aug")
         if date == "0908"
             legend((pl1, custom_legend[5], custom_legend[1]),
-                   ("Measurements", L"$c_t$-model", "MCMC runs, Bayesian-model"),
+                   ("Measurements", L"$c_t$-gradient model", "MCMC runs, free-gradient model"),
                    framealpha = 0.8,
                    loc = "lower right"
                    #bbox_to_anchor=(1.2, 0.5, 0.6, .102), # position of the legend (x0, y0, width, height)
@@ -1699,7 +1699,7 @@ function plot_dSdt_linear(mid, model_runs)
 
         if date == "0908"
             legend((custom_lines[1], pl3, pl1, pl2),
-                (L"Predicted growth rate, $c_t$-model",
+                (L"Predicted growth rate, $c_t$-gradient model",
                 "Error of prediction",
                 "Measurements",
                 "Linear fit of measurements"),

@@ -23,7 +23,7 @@ for date in ["0908", "2108"]
 
 
     # ------------------------------------------ #
-    #            Bayesian-model, MCMC            #
+    #            free-gradient model, MCMC       #
     # ------------------------------------------ #
 
     # initial point of walker

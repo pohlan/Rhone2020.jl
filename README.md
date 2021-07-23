@@ -5,7 +5,7 @@ This repository contains the processing of data from experiments in artificial m
 ## Scripts
 - `read_measurements.jl`: loads data from the sensors and creates dictionaries with manually measured quantities (such as mass of salt tracer); uses `calibration.jl` for the conductivity-concentration conversion and the temperature correction
 - `derive_quantities.jl`: derives the hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor and manning roughness
-- `size_evolution_models.jl`: runs both the ct-model and the Bayesian-model
+- `size_evolution_models.jl`: runs both the ct-model and the free-gradient model
 - `heat_transfer.jl`: calculates all thermodynamic variables (e.g. equilibrium offset-temperature)
 - `paper_figures.jl`: produces figures for paper and supplements as well as table and CSV files of derived quantities and saves them in the `products` folder); uses `overviewmap.jl` to produce Fig. 1 in the paper
 - `master.jl`: runs all the scripts

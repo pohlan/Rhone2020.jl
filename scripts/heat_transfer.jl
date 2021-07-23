@@ -73,7 +73,7 @@ for date in days
     dp_dzs = mid_309_265[date][:dp] ./ mid_309_265[date][:dz]
     T_ct = ct * mid_309_265[date][:p_mean]
 
-    # Data using output of Bayesian-model: dtauw_dz = dTw_dz - dTmelt_dz, the first term comes from the MCMC runs
+    # Data using output of free-gradient model: dtauw_dz = dTw_dz - dTmelt_dz, the first term comes from the MCMC runs
     local dtauw_dz = bootstrap(Particles(model_runs[date][:dTdz_MCMC]), n_partcl) .-  model_runs[date][:dTdz_ct]  # first term has to be converted from array to particles
 
     # Temperature measurements
