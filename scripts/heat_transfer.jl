@@ -13,6 +13,7 @@ nu = mu/rhow # kin. viscosity
 # Where A, a and b are defined: Dittus-Boelter correlation A * Pr^a * Re^b
 coefs = (
     standard = (A=0.023, a=2/5, b=0.8),
+    sommers = (A=0.0025, a=0.4, b=0.95),
     lunardini = (A=0.0078, a=1/3, b=0.927),
     vincent = (A=0.332, a=1/3, b=0.74),
     ogier = (A=1.78, a=1/3, b=0.58),

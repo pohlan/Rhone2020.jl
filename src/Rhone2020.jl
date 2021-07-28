@@ -1809,7 +1809,7 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
              tau_w_off = (L"\tau_w\,(\mathrm{\degree C})", tau_w),
              tau_diff = (L"\tau_w-\tau_{eq}\,(\mathrm{\degree C})", tau_diff)
              )
-    xticklabs = [:standard, :lunardini, :vincent, :ogier, :gnielinski]
+    xticklabs = [:standard, :sommers, :lunardini, :vincent, :ogier, :gnielinski]
     panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}"]
     days = ["0908", "2108"]
 
@@ -1819,9 +1819,9 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
     # draw figure
     if T_surf !== nothing
         paras = (; paras... , tau_surf = (L"\tau_{surf}\,(\mathrm{\degree C})", T_surf)) # if T_surf is plotted as well (supplements)
-        figure(figsize=(5,12))
+        figure(figsize=(6,12))
     else
-        figure(figsize=(5,10))
+        figure(figsize=(6,10))
     end
 
     table = ""
