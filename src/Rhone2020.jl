@@ -1718,23 +1718,28 @@ Possible parameters: z_eq, tau_eq, tau_w; for tau_w it is possible to add measur
 """
 function plot_Nu_params(parameter, y_label, measurements=nothing)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
-    rcParams["font.size"] = 10
+    rcParams["font.size"] = 13
     figure(figsize=(13,5))
-    for (nd, date) in enumerate(["0908", "2108"])
+    for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
         subplot(1,2,nd)
         if measurements !== nothing
-            fill_between(1:length(parameter[date][:standard]), mean.(measurements[date]) .- std.(measurements[date]), mean.(measurements[date]) .+ std.(measurements[date]), label="Measured", color="grey", alpha=0.3)
+            fill_between(1:length(parameter[date][:standard]), quantile(only(measurements[date]), 0.025), quantile(only(measurements[date]), 0.975), label="Measured", color="grey", alpha=0.3)
         end
-        for (corr, col) in zip(keys(parameter[date]), ["green", "blueviolet", "blue", "darkorange", "pink"])
-            errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="o", color=col, label=uppercasefirst(string(corr)), markersize=7, capsize=3.0)
+        for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
+            errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="o", color=col, label=uppercasefirst(string(corr)), markersize=4, capsize=3.0)
+        end
+        if measurements !== nothing
+            legendloc = (0.13, 0.04)
+        else
+            legendloc = (0.13, 0.18)
         end
         if date == "0908"
             ylabel(y_label)
-        else
-            legend(ncol=2, loc=(0.1, 0.3))
+            legend(ncol=3, loc=legendloc,
+               columnspacing=1.0, fontsize=11, handlelength=1.0)
         end
         xlabel("Index of tracer experiment")
-        title(date[1:2] * "-Aug")
+        title(AM * ", " * date[1:2] * "-Aug")
     end
     gcf()
 end
