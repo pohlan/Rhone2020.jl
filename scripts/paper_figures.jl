@@ -31,15 +31,25 @@ savefig(figuredir * "figure5.png")
 
 # ### Figures from supllementary material
 #
-# #### Fig. S1: Closure rate
-R.plot_opening_closure(mid_309_265, model_runs)
+# #### Fig. S1: Opening rates
+R.plot_opening(mid_309_265, model_runs)
 savefig(figuredir * "figure_s1.png")
 
-# #### Fig. S2: heat transfer parameters extended, with estimated surface temperature
-fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+# #### Fig. S2: Closure rate
+R.plot_closure(mid_309_265, model_runs)
 savefig(figuredir * "figure_s2.png")
+
+# #### Fig. S3: heat transfer parameters extended, with estimated surface temperature
+fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+savefig(figuredir * "figure_s3.png")
 # save tale to text file
 write(tabledir * "table_s1.tex", "% Contens of Table S1\n" * table)
+
+# #### Fig. S4: heat transfer parameters of each experiment
+R.plot_heat_params_timeresolved([z_eq, tau_eq, tau_w],
+                                [L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})"],
+                                [nothing, nothing, tauw_measured])
+savefig(figuredir * "figure_s4.png")
 
 # Also save table S2 (produced in size_evolution_models.jl):
 write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table_s2)

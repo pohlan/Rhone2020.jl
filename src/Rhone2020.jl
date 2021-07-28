@@ -1126,13 +1126,14 @@ function plot_closure(mid_309_265, model_runs)
 
     figure(figsize=(8,5))
     ax = subplot(1, 1, 1)
-    errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k+", mew=2, ms=8, label="09-Aug, positive")
-    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g+", mew=2, ms=8, label="21-Aug, negative")
+    errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
     yscale("log")
     xlabel("Time of the corresponding day")
     ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
     legend()
     ax.xaxis.set_major_formatter(majorformatter)
+    gcf()
 end
 
 
@@ -1176,6 +1177,7 @@ function plot_opening(mid_309_265, model_runs)
         mods = models[sorting]
 
         for p in length(cols):-1:1
+            errorbar(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), yerr=std.(output[date][mods[p]]), color=cols[p], fmt="_", ms=8)
             if p == 1
                 fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
             else
@@ -1716,30 +1718,37 @@ end
 For a chosen parameter of heat transfer, plot values of each experiment on 9 and 21 August to see the variation over the days. All uncertainties with one standard deviation.
 Possible parameters: z_eq, tau_eq, tau_w; for tau_w it is possible to add measurements as a third argument
 """
-function plot_Nu_params(parameter, y_label, measurements=nothing)
+function plot_heat_params_timeresolved(parameters, y_labels, measurements)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
     rcParams["font.size"] = 13
-    figure(figsize=(13,5))
-    for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
-        subplot(1,2,nd)
-        if measurements !== nothing
-            fill_between(1:length(parameter[date][:standard]), quantile(only(measurements[date]), 0.025), quantile(only(measurements[date]), 0.975), label="Measured", color="grey", alpha=0.3)
+
+    panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}"]
+
+    figure(figsize=(10, 12))
+    for (np, (parameter, measurement, y_label)) in enumerate(zip(parameters, measurements, y_labels))
+        for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
+            ax = subplot(length(parameters), 2, 2*(np-1)+nd)
+            if measurement !== nothing
+                fill_between(1:length(parameter[date][:standard]), quantile(only(measurement[date]), 0.025), quantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
+            end
+            for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
+                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="o", color=col, label=uppercasefirst(string(corr)), markersize=3)
+            end
+            xticks(2:2:length(parameter[date][:standard]))
+            if date == "0908"
+                ylabel(y_label)
+            end
+            if np == 1
+                title(AM * ", " * date[1:2] * "-Aug")
+            elseif np == length(parameters)
+                xlabel("Index of tracer experiment")
+            end
+            if date == "0908" && measurement !== nothing
+                legend(ncol=3, loc=(0.0, 0.01), framealpha = 0.4,
+                   columnspacing=1.0, fontsize=11, handlelength=1.0)
+            end
+            text(0.0, 1.05, panellabs[2*(np-1)+nd], transform=ax.transAxes, ha="right", va="bottom")
         end
-        for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
-            errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="o", color=col, label=uppercasefirst(string(corr)), markersize=4, capsize=3.0)
-        end
-        if measurements !== nothing
-            legendloc = (0.13, 0.04)
-        else
-            legendloc = (0.13, 0.18)
-        end
-        if date == "0908"
-            ylabel(y_label)
-            legend(ncol=3, loc=legendloc,
-               columnspacing=1.0, fontsize=11, handlelength=1.0)
-        end
-        xlabel("Index of tracer experiment")
-        title(AM * ", " * date[1:2] * "-Aug")
     end
     gcf()
 end
