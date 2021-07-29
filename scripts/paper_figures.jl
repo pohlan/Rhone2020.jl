@@ -12,13 +12,15 @@ savefig(figuredir * "figure1.png")
 # Fig2 is a photo and sketch, i.e. not produced here.
 
 # #### Fig. 3: Plot of derived quantities
-idx_plot = Dict("0808" => 14900:28640, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
-                "0908" => 7200:28640,
-                "1008" => 12500:20750,
-                "1108" => 8000:22300,
+idx_plot = Dict("0808" => 14900:26600, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
+                "0908" => 8000:28000,  # [8000:19100, 12300:27700]
+                "1008" => 12400:20750,
+                "1108" => 8000:25600,
                 "1308" => 13330:15975,
                 "2108" => 1:28640);
-R.multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot)
+idx_gaps = Dict("0908" => 11100:11500)
+
+R.multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 savefig(figuredir * "figure3.png")
 
 # #### Fig. 4: Evolution of the cross-sectional area

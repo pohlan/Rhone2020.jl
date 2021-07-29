@@ -1253,7 +1253,7 @@ end
 Plot for selected data points: hydraulic gradient, discharge, velocity, cross-sectional area, friction factor and manning roughness.
 Fig. 3 in the paper.
 """
-function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot)
+function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot, idx_gaps)
 
     # font properties
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
@@ -1294,7 +1294,9 @@ function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot)
         dp_smooth = Particles.(n_partcl, Normal.(boxcar(mean.(dpress), window_am15), (boxcar(std.(dpress), window_am15)))) # smooth the pressure difference
         dphi_dz = dp_smooth ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
         dphi_dz = dphi_dz ./ (rhow*g) # convert it to mH2O/m
-
+        if haskey(idx_gaps, date)
+            dphi_dz[idx_gaps[date]] .= NaN # remove data points where we moved CTDs up and down or blocked the water inflow
+        end
         if date == "1308" || date == "1008"
             width=0.5*width0
             xlength = 0.5*xlength0
