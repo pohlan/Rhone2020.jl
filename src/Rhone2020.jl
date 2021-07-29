@@ -1558,7 +1558,7 @@ function plot_model_outputs(mid_309_265, model_runs)
     figure(figsize=(17,8))
 
     ax, pl1, pl2 = (nothing for i=1:100)
-    for date in ["0908", "2108"]
+    for (date, AM) in zip(["0908", "2108"], ["AM15", "AM13"])
 
         if date == "2108"
             global left = 0.95-width
@@ -1586,10 +1586,10 @@ function plot_model_outputs(mid_309_265, model_runs)
         ax.xaxis.set_major_formatter(majorformatter)
         ylabel(L"$S\,\mathrm{(m^2)}$")
         xlabel("Time")
-        title(date[1:2] * "-Aug")
+        title(AM * ", " * date[1:2] * "-Aug")
         if date == "0908"
             legend((pl1, custom_legend[5], custom_legend[1]),
-                   ("Measurements", L"$c_t$-gradient model", "MCMC runs, free-gradient model"),
+                   ("Measurements", L"$c_t$-gradient model", "Free-gradient model"),
                    framealpha = 0.8,
                    loc = "lower right"
                    #bbox_to_anchor=(1.2, 0.5, 0.6, .102), # position of the legend (x0, y0, width, height)
@@ -1625,7 +1625,7 @@ function plot_model_outputs(mid_309_265, model_runs)
 
         if date == "2108"
             legend((custom_legend[2], custom_legend[5], custom_legend[3], custom_legend[4]),
-                   ("measured", "melting point gradient", "MCMC Posterior", "MCMC 95% CI"),
+                   ("Measurements", L"$c_t$-gradient model", "Free-gradient model", "95% CI"),
                    loc = "lower right",
                    framealpha=0.8
                    #bbox_to_anchor=(1.11, 0.7, 0.5, .102)) # position of the legend (x0, y0, width, height
