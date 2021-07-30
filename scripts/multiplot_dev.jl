@@ -16,6 +16,16 @@ idx_gaps = Dict("0908" => 11100:11500)
 
 function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     dates = ["0808", "0908", "1008", "1108", "1308"]
+    props = [:pw, :dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
+    ylabels = [L"$p_w\,\mathrm{(mH_2O)}$",
+               L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$",
+               L"$Q\,\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
+               L"$v\,\mathrm{(m\,s^{-1})}$",
+               L"$S\,\mathrm{(m^2)}$",
+               L"$f$",
+               L"$n'\,(\mathrm{s\,m^{-1/3}})$",
+               L"$Re$"]
+    nprops = length(props)
 
     # time windows over which to average pressures, in seconds
     window_am15 = 60  # AM15
@@ -33,18 +43,6 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         axis.xaxis.set_major_locator(loc)
     end
 
-    function draw_breakpoints(axis, kwargs, dx, dy, spin) # draw breakpoints to interrupt x-axis
-        if spin == "upper right" # draw breakpoints at right spines of panels
-            axis.plot((1-dx,1+dx), (-dy,+dy); kwargs...)
-            axis.plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
-        elseif spin == "left" # draw breakpoints at left spines of panels
-            axis.plot((-dx,+dx), (1-dy,1+dy); kwargs...)
-            axis.plot((-dx,+dx), (-dy,+dy); kwargs...)
-        end
-    end
-
-
-
     # width ratios
     widths = []
     for date in dates
@@ -52,16 +50,21 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     end
     w_ratios = widths ./ mean(widths)
     grid_dict = Dict(:width_ratios => widths,
-                     :wspace => 0.05, # horizontal space between panels
-                     :hspace => 0.0)  # vertical space between panels
+                     :wspace => 0.02, # horizontal space between panels
+                     :hspace => 0.1)  # vertical space between panels
 
-    f, axes = plt.subplots(5, 5, sharey="row", sharex="col", gridspec_kw=grid_dict)
+    # style of the spine line at x-axis breakpoints
+    spine_line = (0, (2, 4))
 
-    break_point_length = 0.017 # needs adjustment because figures not equally high and wide
-    ds = break_point_length ./ w_ratios
+    # for drawing breakpoints
+    break_point_length = 0.017
+    dxs = break_point_length ./ w_ratios
     kwargs = Dict(:transform => nothing,
                   :color     => "k",
                   :clip_on   => false)
+
+    # draw subplots
+    f, axes = plt.subplots(8, 5, sharey="row", sharex="col", gridspec_kw=grid_dict)
 
     for (nd, date) in enumerate(dates)
         i = idx_plot[date]
@@ -85,14 +88,6 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         pressbot = pressbot ./ (rhow * g)
         #dphi_dz = dphi_dz ./ (rhow*g)
 
-        # other properties
-        props = Dict(:pw => [],
-                     :dphi_dz => [],
-                     :Q => mid_309_265[date][:Q][pick[date]], # m^3 / s !!!!
-                     :v => mid_309_265[date][:v][pick[date]],
-                     :S => mid_309_265[date][:S][pick[date]])
-        nprops = length(props)
-
         # remove data points where we moved CTDs up and down or blocked the water inflow
         if haskey(idx_gaps, date)
             presstop[idx_gaps[date]] .= NaN
@@ -108,63 +103,60 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         #axes[nprops*(nd-1)+2].plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
         #axes[nprops*(nd-1)+2].fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
 
-        dx = ds[nd]
-        dy = break_point_length * 2
-        ax = 0
-        for (row, key) in enumerate([:pw, :dphi_dz, :Q, :v, :S])
-            ax = length(props)*(nd-1) + row
+        dx = dxs[nd]
+        dy = break_point_length * 3 # needs the factor because plots longer than high, factor chosen randomly
 
+        for (row, (prop, ylab)) in enumerate(zip(props, ylabels))
+            ax = nprops*(nd-1) + row
             if row >= 3 # first two rows are for pressure and hydraulic gradient, manually
-                axes[ax].errorbar(t_inj, mean.(props[key]), yerr=std.(props[key]), fmt="k_")
+                data = mid_309_265[date][prop][pick[date]]
+                axes[ax].errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k_")
             end
-            if nd == 1 # left panel
-                # make intermediate spines dashed lines
-                axes[ax].spines["right"].set_linestyle((0, (3, 10)))
-                # remove axis ticks
+
+            # logarithmic y-scale for some parameters
+            if any(prop .== [:f, :n_manning, :Re])
+                axes[ax].set_yscale("log")
+            end
+
+            # y-label
+            if nd == 1
+                axes[ax].set_ylabel(ylab)
+            end
+
+            # make intermediate spines dashed lines and remove axis ticks
+            if nd !== length(dates) # adjust right side of panel
+                axes[ax].spines["right"].set_linestyle(spine_line)
                 axes[ax].tick_params(right=false)
-                # draw break point lines
-                kwargs[:transform] = axes[ax].transAxes
-                #axes[ax].plot((1-dx,1+dx), (-dy,+dy); kwargs...)
-                #axes[ax].plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
-            elseif nd == length(dates) # right panel
-                axes[ax].spines["left"].set_linestyle((0, (3, 10)))
+            end
+            if nd !== 1 # adjust left side of panel
+                axes[ax].spines["left"].set_linestyle(spine_line)
                 axes[ax].tick_params(left=false)
-                #kwargs[:transform] = axes[ax].transAxes
-                #axes[ax].plot((-dx,+dx), (1-dy,1+dy); kwargs...)
-                #axes[ax].plot((-dx,+dx), (-dy,+dy); kwargs...)
-            else # panels in between
-                axes[ax].spines["left"].set_linestyle((0, (3, 10)))
-                axes[ax].spines["right"].set_linestyle((0, (3, 10)))
-                axes[ax].tick_params(left=false, right=false)
-                #kwargs[:transform] = axes[ax].transAxes
-                #axes[ax].plot((1-dx,1+dx), (-dy,+dy); kwargs...)
-                #axes[ax].plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
-                #axes[ax].plot((-dx,+dx), (1-dy,1+dy); kwargs...)
-                #axes[ax].plot((-dx,+dx), (-dy,+dy); kwargs...)
+            end
+            if row !== nprops
+                axes[ax].tick_params(bottom=false)
             end
 
             # draw breakpoints
             kwargs[:transform] = axes[ax].transAxes
-            if row == 1
-                if nd !== 1 # draw in upper left corner
-                    axes[ax].plot((-dx,+dx), (1-dy,1+dy); kwargs...)
-                elseif nd !== length(dates) # draw in upper right corner
-                    axes[ax].plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
-                end
-            elseif row == nprops
+            #if row == 1
+            #    if nd !== 1 # draw in upper left corner
+            #        axes[ax].plot((-dx,+dx), (1-dy,1+dy); kwargs...)
+            #    end
+            #    if nd !== length(dates) # draw in upper right corner
+            #        axes[ax].plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
+            #    end
+            # elseif row == nprops
+            if row == nprops
                 if nd !== 1 # draw in lower left corner
                     axes[ax].plot((-dx,+dx), (-dy,+dy); kwargs...)
-                elseif nd !== length(dates) # draw in lower right corner
+                end
+                if nd !== length(dates) # draw in lower right corner
                     axes[ax].plot((1-dx,1+dx),(-dy,+dy); kwargs...)
                 end
             end
+            format_xaxis(axes[ax]) # adjust format of time axis
         end
-        format_xaxis(axes[ax])
     end
-
-
-
-# ax1.set_xlim(0, xend)
 
 gcf()
 
