@@ -16,8 +16,8 @@ idx_gaps = Dict("0908" => 11100:11500)
 
 function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     dates = ["0808", "0908", "1008", "1108", "1308", "2108"]
-    props = [:pw, :dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
-    ylabels = [L"$p_w\,\mathrm{(mH_2O)}$",
+    props = [:dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
+    ylabels = [#L"$p_w\,\mathrm{(mH_2O)}$",
                L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$",
                L"$Q\,\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
                L"$v\,\mathrm{(m\,s^{-1})}$",
@@ -60,13 +60,15 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     dxs = break_point_length ./ w_ratios
     kwargs = Dict(:transform => nothing,
                   :color     => "k",
-                  :clip_on   => false)
+                  :linewidth => 1.0,
+                  :clip_on   => false
+                  )
 
     # draw subplots
     fig = plt.figure()
     subfigs = fig.subfigures(1, 2, width_ratios=[5, 1]) #, wspace = 0.01)
-    axesleft  = subfigs[1].subplots(8, 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
-    axesright = subfigs[2].subplots(8, 1, sharex="col", gridspec_kw=grid_dict_right)
+    axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
+    axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
 
     for (nd, date) in enumerate(dates)
         i = idx_plot[date]
@@ -110,15 +112,15 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             else
                 ax = axesleft[nprops*(nd-1) + row]
             end
+            #if row == 1
+            #    ax.plot(ctd309[date][:t][i], presstop, "k", linewidth=0.5)
+            #    ax.plot(ctd309[date][:t][i], pressbot, linewidth=0.5)
             if row == 1
-                ax.plot(ctd309[date][:t][i], presstop, "k", linewidth=0.5)
-                ax.plot(ctd309[date][:t][i], pressbot, linewidth=0.5)
-            elseif row == 2
                 ax.plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
                 ax.fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
-            else # first two rows are for pressure and hydraulic gradient, manually
+            else # first row is for hydraulic gradient, manually
                 data = mid_309_265[date][prop][pick[date]]
-                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k_")
+                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k+")
             end
 
             # logarithmic y-scale for some parameters
@@ -174,15 +176,17 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             # adjust format of time axis
             if date == "1008"
                 format_xaxis(ax, hour_int=1) # interval of x-tick labels 1 hour
+            elseif date == "2108"
+                format_xaxis(ax, hour_int=3)
             else
                 format_xaxis(ax, hour_int=2)
             end
         end
     end
 
-    subfigs[1].suptitle(L"\bf{AM15}")
-    subfigs[2].suptitle(L"\bf{AM13}")
-    subfigs[1].supxlabel("Time")
+    subfigs[1].suptitle(L"\bf{AM15}", y=0.95)
+    subfigs[2].suptitle(L"\bf{AM13}", y=0.95)
+    subfigs[1].supxlabel("Time", y=0.02)
 
 #gcf()
 
