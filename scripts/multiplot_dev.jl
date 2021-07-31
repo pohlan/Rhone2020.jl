@@ -64,7 +64,9 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                   :clip_on   => false)
 
     # draw subplots
-    f, axes = plt.subplots(8, 5, sharey="row", sharex="col", gridspec_kw=grid_dict)
+    fig = plt.figure()
+    subfigs = fig.subfigures(1, 2, width_ratios=[5, 1])
+    axes = subfigs[1].subplots(8, 5, sharey="row", sharex="col", gridspec_kw=grid_dict) #, constrained_layout=true)
 
     for (nd, date) in enumerate(dates)
         i = idx_plot[date]
@@ -158,7 +160,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         end
     end
 
-gcf()
+#gcf()
 
 end
 
