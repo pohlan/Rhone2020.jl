@@ -14,11 +14,11 @@ boxcar = R.boxcar
 idx_plot = Dict("0808" => 15000:24000, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
                 "0908" => 8000:28000,  # [8000:19100, 12300:27700]
                 "1008" => 12400:20750,
-                "1108" => 8500:20700,
+                "1108" => 8300:20700,
                 "1308" => 13600:15900,
                 "2108" => 1:28640);
 idx_gaps = Dict("0908" => 11100:11500,
-                "1108" => 8600:9800)
+                "1108" => 8800:10000)
 
 
 
@@ -39,8 +39,8 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 
     # font properties
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
-    rcParams["font.size"] = 18
-    fs = 18 # font size for figure numbering
+    rcParams["font.size"] = 20
+    fs = 20 # font size for figure numbering
 
     # time axis format
     # for the Locator it is necessary to define this function,
@@ -81,7 +81,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                   )
 
     # draw subplots
-    fig = plt.figure(figsize=(25,15))
+    fig = plt.figure(figsize=(20,15))
     subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
     axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
     axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
@@ -131,12 +131,12 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             #if row == 1
             #    ax.plot(ctd309[date][:t][i], presstop, "k", linewidth=0.5)
             #    ax.plot(ctd309[date][:t][i], pressbot, linewidth=0.5)
-            if row == 1
+            if row == 1 # first row is for hydraulic gradient, manually
                 ax.plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
                 ax.fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
-            else # first row is for hydraulic gradient, manually
+            else
                 data = mid_309_265[date][prop][pick[date]]
-                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k+")
+                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k+", markersize=11)
             end
 
             # logarithmic y-scale for some parameters
@@ -151,7 +151,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 
             # y-label and panel label
             if date == "0808"
-                ax.set_ylabel(ylab, labelpad=48., wrap=true, rotation="horizontal", va="center")
+                ax.set_ylabel(ylab, labelpad=25., wrap=true) #, rotation="horizontal", va="center")
                 text(0.1, 0.6, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
             end
 
@@ -191,21 +191,21 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                 end
             end
             # adjust format of time axis
-            if date == "1008"
-                format_xaxis(ax, Dict(:interval=>1)) # interval of x-tick labels 1 hour
-            elseif date == "1108"
-                format_xaxis(ax, Dict(:byhour=>(12, 14)))
-            elseif date == "1308"
+            #if date == "1008"
+            #    format_xaxis(ax, Dict(:interval=>1)) # interval of x-tick labels 1 hour
+            #if date == "1108"
+            #    format_xaxis(ax, Dict(:byhour=>(12, 13)))
+            if date == "1308"
                 format_xaxis(ax, Dict(:byhour=>14))
             else
                 format_xaxis(ax, Dict(:interval=>2))
             end
-            ax.tick_params("x", pad=10.)
+            ax.tick_params("x", pad=10., labelrotation=30.)
             ax.margins(y=0.2) # so that ylabels don't overlap each other
         end
     end
 
-    subfigs_pos = Dict(:left => 0.2, :right => 0.98, :bottom => 0.08, :top => 0.92)
+    subfigs_pos = Dict(:left => 0.18, :right => 0.97, :bottom => 0.12, :top => 0.92)
     subfigs[1].subplots_adjust(;subfigs_pos...)
     subfigs[2].subplots_adjust(;subfigs_pos...)
     subfigs[1].suptitle(L"\bf{AM15}", y=0.98)
@@ -213,7 +213,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     subfigs[1].supxlabel("Time", y=0.02)
 
 #gcf()
-savefig("test.png")
+savefig("figure3.png")
 
 end
 
