@@ -1,15 +1,24 @@
+#dat = "1308"
+#figure()
+#plot(ctd265[dat][:press] .- ctd309[dat][:press][1:length(ctd265[dat][:press])])
+#figure()
+#plot(ctd265[dat][:press][idx_plot[dat]] .- ctd309[dat][:press][idx_plot[dat]])
+#figure()
+#plot(ctd265[dat][:t], ctd265[dat][:press] .- ctd309[dat][:press][1:length(ctd265[dat][:press])])
+
 
 ### remove later ###
 boxcar = R.boxcar
 ####################
 
-idx_plot = Dict("0808" => 14900:26600, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
+idx_plot = Dict("0808" => 15000:24000, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
                 "0908" => 8000:28000,  # [8000:19100, 12300:27700]
                 "1008" => 12400:20750,
-                "1108" => 8000:25600,
-                "1308" => 13330:15975,
+                "1108" => 8500:20700,
+                "1308" => 13600:15900,
                 "2108" => 1:28640);
-idx_gaps = Dict("0908" => 11100:11500)
+idx_gaps = Dict("0908" => 11100:11500,
+                "1108" => 8600:9800)
 
 
 
@@ -30,17 +39,17 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 
     # font properties
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
-    rcParams["font.size"] = 14
-    fs = 16 # font size for figure numbering
+    rcParams["font.size"] = 18
+    fs = 18 # font size for figure numbering
 
     # time axis format
     # for the Locator it is necessary to define this function,
     # otherwise the xticks from previous plots are removed
     # https://stackoverflow.com/questions/55010236/set-major-locator-removes-x-ticks-and-labels-from-previous-subplots
 
-    function format_xaxis(ax; hour_int)
+    function format_xaxis(ax, loc)
         fmt = matplotlib.dates.DateFormatter("%H:%M")
-        loc = matplotlib.dates.HourLocator(interval=hour_int)
+        loc = matplotlib.dates.HourLocator(;loc...)
         ax.xaxis.set_major_formatter(fmt)
         ax.xaxis.set_major_locator(loc)
     end
@@ -51,8 +60,9 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         append!(widths, length(idx_plot[date]))
     end
     w_ratios = widths ./ mean(widths)
+    w_space = 0.04
     grid_dict_left = Dict(:width_ratios => widths,
-                          :wspace => 0.02, # horizontal space between panels
+                          :wspace => w_space, # horizontal space between panels
                           :hspace => 0.)  # vertical space between panels
 
     # grid_dict for right subfigure
@@ -71,8 +81,8 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                   )
 
     # draw subplots
-    fig = plt.figure(figsize=(20,15))
-    subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths), length(idx_plot["2108"])], wspace = 0.0)
+    fig = plt.figure(figsize=(25,15))
+    subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
     axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
     axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
 
@@ -141,8 +151,8 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 
             # y-label and panel label
             if date == "0808"
-                ax.set_ylabel(ylab, labelpad=45., wrap=true, rotation="horizontal", va="center")
-                text(0.1, 0.75, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
+                ax.set_ylabel(ylab, labelpad=48., wrap=true, rotation="horizontal", va="center")
+                text(0.1, 0.6, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
             end
 
             # make intermediate spines dashed lines and remove axis ticks
@@ -182,15 +192,20 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             end
             # adjust format of time axis
             if date == "1008"
-                format_xaxis(ax, hour_int=1) # interval of x-tick labels 1 hour
+                format_xaxis(ax, Dict(:interval=>1)) # interval of x-tick labels 1 hour
+            elseif date == "1108"
+                format_xaxis(ax, Dict(:byhour=>(12, 14)))
+            elseif date == "1308"
+                format_xaxis(ax, Dict(:byhour=>14))
             else
-                format_xaxis(ax, hour_int=2)
+                format_xaxis(ax, Dict(:interval=>2))
             end
+            ax.tick_params("x", pad=10.)
             ax.margins(y=0.2) # so that ylabels don't overlap each other
         end
     end
 
-    subfigs_pos = Dict(:left => 0.18, :right => 0.98, :bottom => 0.07, :top => 0.93)
+    subfigs_pos = Dict(:left => 0.2, :right => 0.98, :bottom => 0.08, :top => 0.92)
     subfigs[1].subplots_adjust(;subfigs_pos...)
     subfigs[2].subplots_adjust(;subfigs_pos...)
     subfigs[1].suptitle(L"\bf{AM15}", y=0.98)
@@ -198,6 +213,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     subfigs[1].supxlabel("Time", y=0.02)
 
 #gcf()
+savefig("test.png")
 
 end
 
