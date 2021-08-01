@@ -17,15 +17,21 @@ idx_gaps = Dict("0908" => 11100:11500)
 function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     dates = ["0808", "0908", "1008", "1108", "1308", "2108"]
     props = [:dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
+    panel_labs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}"]
     ylabels = [#L"$p_w\,\mathrm{(mH_2O)}$",
-               L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$",
-               L"$Q\,\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
-               L"$v\,\mathrm{(m\,s^{-1})}$",
-               L"$S\,\mathrm{(m^2)}$",
+               L"$\partial\phi/\partial z$ $\mathrm{(mH_2O\,m^{-1})}$",
+               L"$Q$ $\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
+               L"$v$ $\mathrm{(m\,s^{-1})}$",
+               L"$S$ $\mathrm{(m^2)}$",
                L"$f$",
-               L"$n'\,(\mathrm{s\,m^{-1/3}})$",
+               L"$n'$ $(\mathrm{s\,m^{-1/3}})$",
                L"$Re$"]
     nprops = length(props)
+
+    # font properties
+    rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+    rcParams["font.size"] = 14
+    fs = 16 # font size for figure numbering
 
     # time axis format
     # for the Locator it is necessary to define this function,
@@ -47,10 +53,10 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     w_ratios = widths ./ mean(widths)
     grid_dict_left = Dict(:width_ratios => widths,
                           :wspace => 0.02, # horizontal space between panels
-                          :hspace => 0.1)  # vertical space between panels
+                          :hspace => 0.)  # vertical space between panels
 
     # grid_dict for right subfigure
-    grid_dict_right = Dict(:hspace => 0.1)
+    grid_dict_right = Dict(:hspace => 0.)
 
     # style of the spine line at x-axis breakpoints
     spine_line = (0, (2, 4))
@@ -65,8 +71,8 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                   )
 
     # draw subplots
-    fig = plt.figure()
-    subfigs = fig.subfigures(1, 2, width_ratios=[5, 1]) #, wspace = 0.01)
+    fig = plt.figure(figsize=(20,15))
+    subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths), length(idx_plot["2108"])], wspace = 0.0)
     axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
     axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
 
@@ -133,9 +139,10 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                 ax.set_title(date[1:2] * "-Aug")
             end
 
-            # y-label
+            # y-label and panel label
             if date == "0808"
-                ax.set_ylabel(ylab)
+                ax.set_ylabel(ylab, labelpad=45., wrap=true, rotation="horizontal", va="center")
+                text(0.1, 0.75, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
             end
 
             # make intermediate spines dashed lines and remove axis ticks
@@ -176,16 +183,18 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             # adjust format of time axis
             if date == "1008"
                 format_xaxis(ax, hour_int=1) # interval of x-tick labels 1 hour
-            elseif date == "2108"
-                format_xaxis(ax, hour_int=3)
             else
                 format_xaxis(ax, hour_int=2)
             end
+            ax.margins(y=0.2) # so that ylabels don't overlap each other
         end
     end
 
-    subfigs[1].suptitle(L"\bf{AM15}", y=0.95)
-    subfigs[2].suptitle(L"\bf{AM13}", y=0.95)
+    subfigs_pos = Dict(:left => 0.18, :right => 0.98, :bottom => 0.07, :top => 0.93)
+    subfigs[1].subplots_adjust(;subfigs_pos...)
+    subfigs[2].subplots_adjust(;subfigs_pos...)
+    subfigs[1].suptitle(L"\bf{AM15}", y=0.98)
+    subfigs[2].suptitle(L"\bf{AM13}", y=0.98)
     subfigs[1].supxlabel("Time", y=0.02)
 
 #gcf()
