@@ -12,13 +12,14 @@ savefig(figuredir * "figure1.png")
 # Fig2 is a photo and sketch, i.e. not produced here.
 
 # #### Fig. 3: Plot of derived quantities
-idx_plot = Dict("0808" => 14900:26600, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
-                "0908" => 8000:28000,  # [8000:19100, 12300:27700]
+idx_plot = Dict("0808" => 17000:24000, # which indices to plot the hydraulic gradient; exclude parts that only disturb the scale of the y-axis
+                "0908" => 8000:28000,
                 "1008" => 12400:20750,
-                "1108" => 8000:25600,
-                "1308" => 13330:15975,
+                "1108" => 8300:20700,
+                "1308" => 13600:15900,
                 "2108" => 1:28640);
-idx_gaps = Dict("0908" => 11100:11500)
+idx_gaps = Dict("0908" => 11100:11500,
+                "1108" => 8800:10000)
 
 R.multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 savefig(figuredir * "figure3.png")
@@ -33,6 +34,11 @@ savefig(figuredir * "figure5.png")
 
 # ### Figures from supllementary material
 #
+
+# ### Fig. .. : water pressure and temperature
+R.plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
+savefig(figuredir * "pw_temp.png")
+
 # #### Fig. S1: Opening rates
 R.plot_opening(mid_309_265, model_runs)
 savefig(figuredir * "figure_s1.png")

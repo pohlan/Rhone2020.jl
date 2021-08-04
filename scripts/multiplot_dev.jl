@@ -1,12 +1,3 @@
-#dat = "1308"
-#figure()
-#plot(ctd265[dat][:press] .- ctd309[dat][:press][1:length(ctd265[dat][:press])])
-#figure()
-#plot(ctd265[dat][:press][idx_plot[dat]] .- ctd309[dat][:press][idx_plot[dat]])
-#figure()
-#plot(ctd265[dat][:t], ctd265[dat][:press] .- ctd309[dat][:press][1:length(ctd265[dat][:press])])
-
-
 ### remove later ###
 boxcar = R.boxcar
 ####################
@@ -99,6 +90,7 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         else
             window = 60
         end
+        # smooth the pressure difference
         presstop = boxcar(ctd309[date][:press][i], window)
         pressbot = boxcar(ctd265[date][:press][i], window)
 
@@ -106,8 +98,8 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         dz = mid_309_265[date][:dz]
         dpress = Particles.(n_partcl, Normal.(pressbot, e_p*300)) .-
                  Particles.(n_partcl, Normal.(presstop, e_p*100))
-        dp_smooth = Particles.(n_partcl, Normal.(mean.(dpress), std.(dpress))) # smooth the pressure difference
-        dphi_dz = dp_smooth ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
+        #dp_smooth = Particles.(n_partcl, Normal.(mean.(dpress), std.(dpress)))
+        dphi_dz = dpress ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
 
          # conversion to mH2O
         presstop = presstop ./ (rhow * g)
@@ -128,15 +120,12 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
             else
                 ax = axesleft[nprops*(nd-1) + row]
             end
-            #if row == 1
-            #    ax.plot(ctd309[date][:t][i], presstop, "k", linewidth=0.5)
-            #    ax.plot(ctd309[date][:t][i], pressbot, linewidth=0.5)
             if row == 1 # first row is for hydraulic gradient, manually
                 ax.plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
                 ax.fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
             else
                 data = mid_309_265[date][prop][pick[date]]
-                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="k+", markersize=11)
+                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="kx", markersize=7)
             end
 
             # logarithmic y-scale for some parameters
@@ -174,14 +163,6 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
 
             # draw breakpoints
             kwargs[:transform] = ax.transAxes
-            #if row == 1
-            #    if nd !== 1 # draw in upper left corner
-            #        ax.plot((-dx,+dx), (1-dy,1+dy); kwargs...)
-            #    end
-            #    if nd !== length(dates)-1 # draw in upper right corner
-            #        ax.plot((1-dx,1+dx),(1-dy,1+dy); kwargs...)
-            #    end
-            # elseif row == nprops
             if row == nprops && date !== "2108"
                 if nd !== 1 # draw in lower left corner
                     ax.plot((-dx,+dx), (-dy,+dy); kwargs...)
@@ -190,11 +171,6 @@ function multi_plot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                     ax.plot((1-dx,1+dx),(-dy,+dy); kwargs...)
                 end
             end
-            # adjust format of time axis
-            #if date == "1008"
-            #    format_xaxis(ax, Dict(:interval=>1)) # interval of x-tick labels 1 hour
-            #if date == "1108"
-            #    format_xaxis(ax, Dict(:byhour=>(12, 13)))
             if date == "1308"
                 format_xaxis(ax, Dict(:byhour=>14))
             else

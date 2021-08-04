@@ -1127,7 +1127,7 @@ function plot_closure(mid_309_265, model_runs)
     figure(figsize=(8,5))
     ax = subplot(1, 1, 1)
     errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
-    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="gx", mew=2, ms=8, label="AM13/21-Aug, negative")
     yscale("log")
     xlabel("Time of the corresponding day")
     ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
@@ -1177,7 +1177,7 @@ function plot_opening(mid_309_265, model_runs)
         mods = models[sorting]
 
         for p in length(cols):-1:1
-            errorbar(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), yerr=std.(output[date][mods[p]]), color=cols[p], fmt="_", ms=8)
+            errorbar(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), yerr=std.(output[date][mods[p]]), color=cols[p], fmt="x", ms=8)
             if p == 1
                 fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
             else
@@ -1253,277 +1253,366 @@ end
 Plot for selected data points: hydraulic gradient, discharge, velocity, cross-sectional area, friction factor and manning roughness.
 Fig. 3 in the paper.
 """
-function multiplot(mid, pick, ctd1, ctd2, error_p, idx_plot, idx_gaps)
+function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
+    dates = ["0808", "0908", "1008", "1108", "1308", "2108"]
+    props = [:dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
+    panel_labs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}"]
+    ylabels = [#L"$p_w\,\mathrm{(mH_2O)}$",
+               L"$\partial\phi/\partial z$ $\mathrm{(mH_2O\,m^{-1})}$",
+               L"$Q$ $\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
+               L"$v$ $\mathrm{(m\,s^{-1})}$",
+               L"$S$ $\mathrm{(m^2)}$",
+               L"$f$",
+               L"$n'$ $(\mathrm{s\,m^{-1/3}})$",
+               L"$Re$"]
+    nprops = length(props)
 
     # font properties
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
-    rcParams["font.size"] = 18
+    rcParams["font.size"] = 20
     fs = 20 # font size for figure numbering
 
-    # define position of the panels
-    left1 = 0.12
-    width0 = 0.133
-    leftnew = left1+4*width0
-    left2 = 0.73
-    height = 0.13
-    bottom = 0.08
+    # time axis format
+    # for the Locator it is necessary to define this function,
+    # otherwise the xticks from previous plots are removed
+    # https://stackoverflow.com/questions/55010236/set-major-locator-removes-x-ticks-and-labels-from-previous-subplots
 
-    # starting point of xaxis
-    xstart = 18482.45 # for left panel
-    xlength0 = 0.38
-
-    # distance of y-labels to y-axis
-    ylabelpad = -0.6
-
-    window_am15 = 60
-    window_am13 = 900
-
-    # draw figure
-    figure(figsize=(16,13))
-    ax1, ax2, ax3, ax4, ax5, ax6 = (nothing for i=1:100)
-    days = ["0808", "0908", "1008", "1108", "1308"];
-    for n = length(days)-1:-1:0 #length(days)-1:-1:0
-        date = days[n+1]
-        # hydraulic gradient
-        dz = mid[date][:dz]
-        ix = idx_plot[date]
-        # xlenght = (idx_plot[date][end]-idx_plot[date][1]) / (3600*24) + 0.1
-        X = map(Float64, convert(Array, ix))
-        dpress = Particles.(n_partcl, Normal.(ctd2[date][:press][ix], error_p*300)) .-
-                 Particles.(n_partcl, Normal.(ctd1[date][:press][ix], error_p*100))
-        dp_smooth = Particles.(n_partcl, Normal.(boxcar(mean.(dpress), window_am15), (boxcar(std.(dpress), window_am15)))) # smooth the pressure difference
-        dphi_dz = dp_smooth ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
-        dphi_dz = dphi_dz ./ (rhow*g) # convert it to mH2O/m
-        if haskey(idx_gaps, date)
-            dphi_dz[idx_gaps[date]] .= NaN # remove data points where we moved CTDs up and down or blocked the water inflow
-        end
-        if date == "1308" || date == "1008"
-            width=0.5*width0
-            xlength = 0.5*xlength0
-        else
-            width = width0
-            xlength = xlength0
-        end
-        leftnew = leftnew-width
-        ax = PyPlot.axes([leftnew, bottom+5*height, width, height]) # left, bottom, width, height
-        plot(ctd1[date][:t][ix],mean.(dphi_dz),"k",linewidth=0.5)
-        fill_between(ctd1[date][:t][ix],mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz),color="grey")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-        end
-        tick_params(axis="x", labelcolor="w")
-        if n == length(days)-1
-            ax1 = ax
-        else
-            ax.axes.sharey(ax1)
-        end
-        if n == 0
-            text(2.1, 1.6, L"\bf{AM15}",fontsize=17, transform=ax.transAxes, ha="left", va="top")
-            text(0.1, 0.9, L"\bf{a}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.8, L"$\partial \phi /\partial z\,\mathrm{(mH_2O\,m^{-1})}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w")
-        end
-        title(date[1:2] * "-Aug")
-
-
-        # discharge
-        ax = PyPlot.axes([leftnew, bottom+4*height, width, height]) # left, bottom, width, height
-        errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:Q][pick[date]]).*1e3,yerr=std.(mid[date][:Q][pick[date]]).*1e3,fmt="k+")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-        end
-        tick_params(axis="x", labelcolor="w")
-        if n == length(days)-1
-            ax2 = ax
-        else
-            ax.axes.sharey(ax2)
-        end
-        if n == 0
-            text(0.1, 0.9, L"\bf{b}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.5, L"$Q\,\mathrm{(l\,s^{-1})}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w")
-        end
-
-        # flow speed
-        ax = PyPlot.axes([leftnew, bottom+3*height, width, height]) # left, bottom, width, height
-        errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:v][pick[date]]),yerr=std.(mid[date][:v][pick[date]]),fmt="k+")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-        end
-        tick_params(axis="x", labelcolor="w")
-        if n == length(days)-1
-            ax3 = ax
-        else
-            ax.axes.sharey(ax3)
-        end
-        if n == 0
-            text(0.1, 0.9, L"\bf{c}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.5, L"$v\,\mathrm{(m\,s^{-1})}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w")
-        end
-
-        # cross-sectional area
-        ax = PyPlot.axes([leftnew, bottom+2*height, width, height]) # left, bottom, width, height
-        errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:S][pick[date]]),yerr=std.(mid[date][:S][pick[date]]),fmt="k+")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-        end
-        ylim([0.0, 0.42])
-        tick_params(axis="x", labelcolor="w")
-        if n == length(days)-1
-            ax4 = ax
-        else
-            ax.axes.sharey(ax4)
-        end
-        if n == 0
-            text(0.1, 0.9, L"\bf{d}",fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.5, L"$S\,\mathrm{(m^2)}$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w")
-        end
-
-        # Darcy friction parameter
-        ax = PyPlot.axes([leftnew, bottom+height, width, height]) # left, bottom, width, height
-        errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:f][pick[date]]),yerr=std.(mid[date][:f][pick[date]]),fmt="k+")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-        end
-        ylim([0.05, 30.0])
-        yscale("log")
-        tick_params(axis="x", labelcolor="w")
-        if n == length(days)-1
-            ax5 = ax
-        else
-            ax.axes.sharey(ax5)
-        end
-        if n == 0
-            text(0.1, 0.9, L"\bf{e}",fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.5, L"$f$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w")
-        end
-
-        # manning roughness
-        ax = PyPlot.axes([leftnew, bottom, width, height]) # left, bottom, width, height
-        errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:n_manning][pick[date]]),yerr=std.(mid[date][:n_manning][pick[date]]),fmt="k+")
-        if date == "1008"
-            xlim([xstart+n+0.05, xstart+n+0.05+xlength])
-            xt = [floor(xstart+n)+14/24.]
-            xticks(xt,["14:00"]) #,"11:00"])
-        elseif date == "1108"
-            xlim([xstart+n-0.1, xstart+n-0.1+xlength])
-            xt = [floor(xstart+n)+11/24., floor(xstart+n)+15/24.]
-            xticks(xt,["11:00","15:00"])
-        elseif date == "1308"
-            xlim([xstart+n+1+0.04, xstart+n+1+0.04+xlength])
-            xt = [floor(xstart+n+1)+14/24.]
-            xticks(xt,["14:00"]) #,"11:00"])
-        else
-            xlim([xstart+n, xstart+n+xlength])
-            xt = [floor(xstart+n)+13/24., floor(xstart+n)+17/24.]
-            xticks(xt,["13:00","17:00"])
-        end
-        ylim([0.015, 0.4])
-        yscale("log")
-        if n == length(days)-1
-            ax6 = ax
-        else
-            ax.axes.sharey(ax6)
-        end
-        if n == 0
-            text(0.1, 0.9, L"\bf{f}", fontsize=fs, transform=ax.transAxes, ha="left", va="top")
-            text(ylabelpad, 0.5, L"$n'\,(\mathrm{s\,m^{-1/3}})$", rotation="vertical", transform=ax.transAxes, ha="left", va="center")
-        else
-            tick_params(axis="y", labelcolor="w", left=false)
-        end
-
+    function format_xaxis(ax, loc)
+        fmt = matplotlib.dates.DateFormatter("%H:%M")
+        loc = matplotlib.dates.HourLocator(;loc...)
+        ax.xaxis.set_major_formatter(fmt)
+        ax.xaxis.set_major_locator(loc)
     end
 
-    date = "2108"
-    width = width0
-    xlength = xlength0
+    # width ratios for left subfigure
+    widths = []
+    for date in dates[1:end-1]
+        append!(widths, length(idx_plot[date]))
+    end
+    w_ratios = widths ./ mean(widths)
+    w_space = 0.04
+    grid_dict_left = Dict(:width_ratios => widths,
+                          :wspace => w_space, # horizontal space between panels
+                          :hspace => 0.)  # vertical space between panels
 
-    # hydraulic gradient
-    dz = mid[date][:dz]
-    ix = idx_plot[date]
-    X = map(Float64, convert(Array, ix))
-    dpress = Particles.(n_partcl, Normal.(ctd2[date][:press][ix], error_p*300)) .-
-             Particles.(n_partcl, Normal.(ctd1[date][:press][ix], error_p*100))
-    dp_smooth = Particles.(n_partcl, Normal.(boxcar(mean.(dpress), window_am13), (boxcar(std.(dpress), window_am13)))) # smooth the pressure difference
-    dphi_dz = dp_smooth ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
-    dphi_dz = dphi_dz ./ (rhow*g) # convert it to mH2O/m
+    # grid_dict for right subfigure
+    grid_dict_right = Dict(:hspace => 0.)
 
-    axa = PyPlot.axes([left2, bottom+5*height, width, height])
-    plot(ctd1[date][:t][ix],mean.(dphi_dz),"k",linewidth=0.5)
-    fill_between(ctd1[date][:t][ix],mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz),color="grey")
-    xlim([18495.37, 18495.37+xlength])
-    ylim([-0.064, ylim()[2]])
-    tick_params(axis="x",labelcolor="w")
-    title("21-Aug")
-    text(0.5, 1.6, L"\bf{AM13}",fontsize=17, transform=axa.transAxes, ha="left", va="top")
+    # style of the spine line at x-axis breakpoints
+    spine_line = (0, (2, 4))
 
-    # discharge
-    PyPlot.axes([left2, bottom+4*height, width, height], sharex=axa)
-    errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:Q][pick[date]]).*1e3,yerr=std.(mid[date][:Q][pick[date]]).*1e3,fmt="k+")
-    tick_params(axis="x",labelcolor="w")
+    # for drawing breakpoints
+    break_point_length = 0.017
+    dxs = break_point_length ./ w_ratios
+    kwargs = Dict(:transform => nothing,
+                  :color     => "k",
+                  :linewidth => 1.0,
+                  :clip_on   => false
+                  )
 
-    # velocity
-    PyPlot.axes([left2, bottom+3*height, width, height], sharex=axa)
-    errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:v][pick[date]]),yerr=std.(mid[date][:v][pick[date]]),fmt="k+")
-    ylim([ylim()[1], 0.94])
-    tick_params(axis="x",labelcolor="w")
+    # draw subplots
+    fig = plt.figure(figsize=(20,15))
+    subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
+    axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
+    axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
 
-    # cross-sectional area
-    PyPlot.axes([left2, bottom+2*height, width, height], sharex=axa)
-    errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:S][pick[date]]),yerr=std.(mid[date][:S][pick[date]]),fmt="k+")
-    tick_params(axis="x",labelcolor="w")
+    for (nd, date) in enumerate(dates)
+        i = idx_plot[date]
 
-    # Darcy friction parameter
-    PyPlot.axes([left2, bottom+height, width, height], sharex=axa)
-    errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:f][pick[date]]),yerr=std.(mid[date][:f][pick[date]]),fmt="k+")
-    tick_params(axis="x",labelcolor="w")
+        # time axes injections
+        t_inj = mid_309_265[date][:t_inj][pick[date]]
 
-    # manning roughness
-    PyPlot.axes([left2, bottom, width, height], sharex=axa)
-    errorbar(mid[date][:t_inj][pick[date]],mean.(mid[date][:n_manning][pick[date]]),yerr=std.(mid[date][:n_manning][pick[date]]),fmt="k+")
-    ylim([ylim()[1], 0.054])
-    xt = [18495.0+12/24.,18495.0+16/24.]
-    xticks(xt,["12:00","16:00"])
+        # pressure
+        # time windows over which to average pressures, in seconds
+        if date == "2108"
+            window = 900
+        else
+            window = 60
+        end
+        # smooth the pressure difference
+        presstop = boxcar(ctd309[date][:press][i], window)
+        pressbot = boxcar(ctd265[date][:press][i], window)
 
-    gcf()
+        # hydraulic gradient
+        dz = mid_309_265[date][:dz]
+        dpress = Particles.(n_partcl, Normal.(pressbot, e_p*300)) .-
+                 Particles.(n_partcl, Normal.(presstop, e_p*100))
+        #dp_smooth = Particles.(n_partcl, Normal.(mean.(dpress), std.(dpress)))
+        dphi_dz = dpress ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
+
+         # conversion to mH2O
+        presstop = presstop ./ (rhow * g)
+        pressbot = pressbot ./ (rhow * g)
+        dphi_dz = dphi_dz ./ (rhow*g)
+
+        # remove data points where we moved CTDs up and down or blocked the water inflow
+        if haskey(idx_gaps, date)
+            presstop[idx_gaps[date]] .= NaN
+            pressbot[idx_gaps[date]] .= NaN
+            dphi_dz[idx_gaps[date]] .= NaN
+        end
+
+        for (row, (prop, ylab)) in enumerate(zip(props, ylabels))
+            if date == "2108"
+                ax = axesright[row]
+                nd = 1
+            else
+                ax = axesleft[nprops*(nd-1) + row]
+            end
+            if row == 1 # first row is for hydraulic gradient, manually
+                ax.plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
+                ax.fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
+            else
+                data = mid_309_265[date][prop][pick[date]]
+                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="kx", markersize=7)
+            end
+
+            # logarithmic y-scale for some parameters
+            if any(prop .== [:f, :n_manning, :Re])
+                ax.set_yscale("log")
+            end
+
+            # title
+            if row == 1
+                ax.set_title(date[1:2] * "-Aug")
+            end
+
+            # y-label and panel label
+            if date == "0808"
+                ax.set_ylabel(ylab, labelpad=25., wrap=true) #, rotation="horizontal", va="center")
+                text(0.1, 0.6, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
+            end
+
+            # make intermediate spines dashed lines and remove axis ticks
+            if date !== "2108"
+                dx = dxs[nd]
+                dy = break_point_length * 3 # needs the factor because plots longer than high, factor chosen randomly
+                if nd !== length(dates)-1 # adjust right side of panel
+                    ax.spines["right"].set_linestyle(spine_line)
+                    ax.tick_params(right=false)
+                end
+                if nd !== 1 # adjust left side of panel
+                    ax.spines["left"].set_linestyle(spine_line)
+                    ax.tick_params(which="both", left=false) # both -> remove also minor ticks in logscale plots, default is major
+                end
+            end
+            if row !== nprops
+                ax.tick_params(bottom=false)
+            end
+
+            # draw breakpoints
+            kwargs[:transform] = ax.transAxes
+            if row == nprops && date !== "2108"
+                if nd !== 1 # draw in lower left corner
+                    ax.plot((-dx,+dx), (-dy,+dy); kwargs...)
+                end
+                if nd !== length(dates)-1 # draw in lower right corner
+                    ax.plot((1-dx,1+dx),(-dy,+dy); kwargs...)
+                end
+            end
+            if date == "1308"
+                format_xaxis(ax, Dict(:byhour=>14))
+            else
+                format_xaxis(ax, Dict(:interval=>2))
+            end
+            ax.tick_params("x", pad=10., labelrotation=30.)
+            ax.margins(y=0.2) # so that ylabels don't overlap each other
+        end
+    end
+
+    subfigs_pos = Dict(:left => 0.18, :right => 0.97, :bottom => 0.12, :top => 0.92)
+    subfigs[1].subplots_adjust(;subfigs_pos...)
+    subfigs[2].subplots_adjust(;subfigs_pos...)
+    subfigs[1].suptitle(L"\bf{AM15}", y=0.98)
+    subfigs[2].suptitle(L"\bf{AM13}", y=0.98)
+    subfigs[1].supxlabel("Time", y=0.02)
+
+gcf()
+
+end
+
+"""
+Produce Fig. S1 (supplements) showing water pressure and temperature
+"""
+function plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
+    dates = ["0808", "0908", "1008", "1108", "1308", "2108"]
+    props = [:press, :temp_PT]
+    panel_labs = [L"\bf{a}", L"\bf{b}"]
+    ylabels = [L"$p_w\,\mathrm{(mH_2O)}$",
+               L"$T_w\,(\degree\,\mathrm{C})$"]
+    errors = [[100*e_p, 300*e_p], [e_T, e_T]]
+    nprops = length(props)
+
+    # font properties
+    rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+    rcParams["font.size"] = 14
+    fs = 14 # font size for figure numbering
+
+    # legend handles
+    L2D = PyPlot.matplotlib.lines.Line2D
+    Patch = PyPlot.matplotlib.patches.Patch
+    custom_legend = [L2D([0], [0], color="darkblue", lw=2),
+                     L2D([0], [0], color="orange", lw=2),
+                     Patch(facecolor="darkblue", alpha = 0.3),
+                     Patch(facecolor="orange", alpha = 0.3)]
+
+    # time axis format
+    # for the Locator it is necessary to define this function,
+    # otherwise the xticks from previous plots are removed
+    # https://stackoverflow.com/questions/55010236/set-major-locator-removes-x-ticks-and-labels-from-previous-subplots
+
+    function format_xaxis(ax, loc)
+        fmt = matplotlib.dates.DateFormatter("%H:%M")
+        loc = matplotlib.dates.HourLocator(;loc...)
+        ax.xaxis.set_major_formatter(fmt)
+        ax.xaxis.set_major_locator(loc)
+    end
+
+    # width ratios for left subfigure
+    widths = []
+    for date in dates[1:end-1]
+        append!(widths, length(idx_plot[date]))
+    end
+    w_ratios = widths ./ mean(widths)
+    w_space = 0.04
+    grid_dict_left = Dict(:width_ratios => widths,
+                          :wspace => w_space, # horizontal space between panels
+                          :hspace => 0.)  # vertical space between panels
+
+    # grid_dict for right subfigure
+    grid_dict_right = Dict(:hspace => 0.)
+
+    # style of the spine line at x-axis breakpoints
+    spine_line = (0, (2, 4))
+
+    # for drawing breakpoints
+    break_point_length = 0.01
+    dxs = break_point_length ./ w_ratios
+    kwargs = Dict(:transform => nothing,
+                  :color     => "k",
+                  :linewidth => 1.0,
+                  :clip_on   => false
+                  )
+
+    # draw subplots
+    fig = plt.figure(figsize=(14,6))
+    subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
+    axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
+    axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
+
+    # share y-axis between AM15 and AM13
+    for a in 1:length(axesright)
+        axesright[a].sharey(axesleft[(a-1)*5+1])
+    end
+    for (nd, date) in enumerate(dates)
+        i = idx_plot[date]
+
+        # time axes injections
+        t_inj = mid_309_265[date][:t_inj][pick[date]]
+
+        # pressure
+        # time windows over which to average pressures, in seconds
+        if date == "2108"
+            window = 900
+        else
+            window = 60
+        end
+
+        for (row, (prop, ylab, err)) in enumerate(zip(props, ylabels, errors))
+
+            top = boxcar(ctd309[date][prop][i], window)
+            bot = boxcar(ctd265[date][prop][i], window)
+            # remove data points where we moved CTDs up and down or blocked the water inflow
+            if haskey(idx_gaps, date)
+                top[idx_gaps[date]] .= NaN
+                bot[idx_gaps[date]] .= NaN
+            end
+
+            top = Particles.(n_partcl, Normal.(top, err[1]))
+            bot = Particles.(n_partcl, Normal.(bot, err[2]))
+
+            if prop == :press # pressure
+                # conversion to mH2O
+                top = top ./ (rhow * g)
+                bot = bot ./ (rhow * g)
+            end
+
+            if date == "2108"
+                ax = axesright[row]
+                nd = 1
+            else
+                ax = axesleft[nprops*(nd-1) + row]
+            end
+
+            ax.plot(ctd309[date][:t][i], mean.(top), color="darkblue", linewidth=2, label="upper sensor")
+            ax.plot(ctd309[date][:t][i], mean.(bot), color="orange", linewidth=2, label="lower sensor")
+            ax.fill_between(ctd309[date][:t][i], mean.(top) .+ std.(top), mean.(top) .- std.(top), color="darkblue", alpha=0.3, label="uncertainty")
+            ax.fill_between(ctd309[date][:t][i], mean.(bot) .+ std.(bot), mean.(bot) .- std.(bot), color="orange", alpha=0.3, label="uncertainty")
+            legend(custom_legend,
+                   ("upper sensor", "lower sensor", "uncertainty", "uncertainty"),
+                   ncol = 2,
+                   loc = "upper center",
+                   handlelength = 0.8,
+                   columnspacing = 1.0,
+                   frameon = false)
+            # title
+            if row == 1
+                ax.set_title(date[1:2] * "-Aug")
+            end
+
+            # y-label and panel label
+            if date == "0808"
+                ax.set_ylabel(ylab, labelpad=25., wrap=true) #, rotation="horizontal", va="center")
+                text(0.1, 0.9, panel_labs[row], fontsize=fs, transform=ax.transAxes, ha="left", va="top")
+            end
+
+            # make intermediate spines dashed lines and remove axis ticks
+            if date !== "2108"
+                dx = dxs[nd]
+                dy = break_point_length * 2 # needs the factor because plots longer than high, factor chosen randomly
+                if nd !== length(dates)-1 # adjust right side of panel
+                    ax.spines["right"].set_linestyle(spine_line)
+                    ax.tick_params(right=false)
+                end
+                if nd !== 1 # adjust left side of panel
+                    ax.spines["left"].set_linestyle(spine_line)
+                    ax.tick_params(which="both", left=false) # both -> remove also minor ticks in logscale plots, default is major
+                end
+            end
+            if row !== nprops
+                ax.tick_params(bottom=false)
+            end
+
+            # draw breakpoints
+            kwargs[:transform] = ax.transAxes
+            if row == nprops && date !== "2108"
+                if nd !== 1 # draw in lower left corner
+                    ax.plot((-dx,+dx), (-dy,+dy); kwargs...)
+                end
+                if nd !== length(dates)-1 # draw in lower right corner
+                    ax.plot((1-dx,1+dx),(-dy,+dy); kwargs...)
+                end
+            end
+            # adjust format of time axis
+            if date == "1308"
+                format_xaxis(ax, Dict(:byhour=>14))
+            else
+                format_xaxis(ax, Dict(:interval=>2))
+            end
+            ax.tick_params("x", pad=10., labelrotation=30.)
+            ax.margins(y=0.2) # so that ylabels don't overlap each other
+        end
+    end
+
+    subfigs_pos = Dict(:left => 0.18, :right => 0.97, :bottom => 0.2, :top => 0.88)
+    subfigs[1].subplots_adjust(;subfigs_pos...)
+    subfigs[2].subplots_adjust(;subfigs_pos...)
+    subfigs[1].suptitle(L"\bf{AM15}", y=0.98)
+    subfigs[2].suptitle(L"\bf{AM13}", y=0.98)
+    subfigs[1].supxlabel("Time", y=0.02)
+
+gcf()
+
 end
 
 """
@@ -1734,7 +1823,7 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
                 fill_between(1:length(parameter[date][:standard]), quantile(only(measurement[date]), 0.025), quantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
             end
             for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
-                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="o", color=col, label=uppercasefirst(string(corr)), markersize=3)
+                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="x", color=col, label=uppercasefirst(string(corr)), markersize=3)
             end
             xticks(2:2:length(parameter[date][:standard]))
             if date == "0908"
@@ -1870,8 +1959,8 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
             end
             push!(out, o)
         end
-        errorbar(xs[1:length(xticklabs)], ys[1:length(xticklabs)], yerr=yerr[1:length(xticklabs)], fmt="k+", markersize=7) # 9 August
-        errorbar(xs[length(xticklabs)+1:end], ys[length(xticklabs)+1:end], yerr=yerr[length(xticklabs)+1:end], fmt="g+", markersize=7) # 21 August
+        errorbar(xs[1:length(xticklabs)], ys[1:length(xticklabs)], yerr=yerr[1:length(xticklabs)], fmt="kx", markersize=7) # 9 August
+        errorbar(xs[length(xticklabs)+1:end], ys[length(xticklabs)+1:end], yerr=yerr[length(xticklabs)+1:end], fmt="gx", markersize=7) # 21 August
         ylabel(lab)
         xticks(1:length(xticklabs), ["" for i=1:length(xticklabs)])
         if p == Nus
