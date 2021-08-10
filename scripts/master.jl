@@ -17,7 +17,7 @@ pygui(false)
 # run all scripts for computations
 include("read_measurements.jl") # load all data
 include("derive_quantities.jl") # compute hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor
-#include("size_evolution_models.jl") # run ct-model and free-gradient model
-#include("heat_transfer.jl") # comput thermodynamic variables (equilibrium offset-temperature etc.)
-#include("paper_figures.jl") # plot all figures of the paper and supplements and save them in the products folder
+include("size_evolution_models.jl") # run ct-model and free-gradient model
+include("heat_transfer.jl") # comput thermodynamic variables (equilibrium offset-temperature etc.)
+include("paper_figures.jl") # plot all figures of the paper and supplements and save them in the products folder
                             # also writes tables and CSV files

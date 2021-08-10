@@ -1127,7 +1127,7 @@ function plot_closure(mid_309_265, model_runs)
     figure(figsize=(8,5))
     ax = subplot(1, 1, 1)
     errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
-    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="gx", mew=2, ms=8, label="AM13/21-Aug, negative")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
     yscale("log")
     xlabel("Time of the corresponding day")
     ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
@@ -1194,8 +1194,8 @@ function plot_opening(mid_309_265, model_runs)
         if date == "2108"
             legend(custom_legend,
                 ("ct-gradient model, total",
-                 "free-gradient model, total",
-                 "frictional heat component"),
+                 "Free-gradient model, total",
+                 "Frictional heat component"),
                 ncol = 1
                 )
         end
@@ -1549,7 +1549,7 @@ function plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, 
             ax.fill_between(ctd309[date][:t][i], mean.(top) .+ std.(top), mean.(top) .- std.(top), color="darkblue", alpha=0.3, label="uncertainty")
             ax.fill_between(ctd309[date][:t][i], mean.(bot) .+ std.(bot), mean.(bot) .- std.(bot), color="orange", alpha=0.3, label="uncertainty")
             legend(custom_legend,
-                   ("upper sensor", "lower sensor", "uncertainty", "uncertainty"),
+                   ("Upper sensor", "Lower sensor", "Uncertainty", "Uncertainty"),
                    ncol = 2,
                    loc = "upper center",
                    handlelength = 0.8,
@@ -1823,7 +1823,7 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
                 fill_between(1:length(parameter[date][:standard]), quantile(only(measurement[date]), 0.025), quantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
             end
             for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
-                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="x", color=col, label=uppercasefirst(string(corr)), markersize=3)
+                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="_", color=col, label=uppercasefirst(string(corr)), markersize=7)
             end
             xticks(2:2:length(parameter[date][:standard]))
             if date == "0908"
@@ -1959,8 +1959,8 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
             end
             push!(out, o)
         end
-        errorbar(xs[1:length(xticklabs)], ys[1:length(xticklabs)], yerr=yerr[1:length(xticklabs)], fmt="kx", markersize=7) # 9 August
-        errorbar(xs[length(xticklabs)+1:end], ys[length(xticklabs)+1:end], yerr=yerr[length(xticklabs)+1:end], fmt="gx", markersize=7) # 21 August
+        errorbar(xs[1:length(xticklabs)], ys[1:length(xticklabs)], yerr=yerr[1:length(xticklabs)], fmt="k+", markersize=7) # 9 August
+        errorbar(xs[length(xticklabs)+1:end], ys[length(xticklabs)+1:end], yerr=yerr[length(xticklabs)+1:end], fmt="g+", markersize=7) # 21 August
         ylabel(lab)
         xticks(1:length(xticklabs), ["" for i=1:length(xticklabs)])
         if p == Nus
