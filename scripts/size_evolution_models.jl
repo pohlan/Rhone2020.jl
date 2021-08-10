@@ -95,7 +95,7 @@ end
 
 ## Table S2
 ## print latex table of total opening rate, opening rate due to sensible heat and closure rate
-table_s2 = ""
+table_s3 = ""
 for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
                                  [:dSdt_ct, :dSdt_sensible_ct],
                                  [L"Total opening rate ($\mathrm{m^2\,s^{-1}}$)", L"Opening rate due to sensible heat ($\mathrm{m^2\,s^{-1}}$)"])
@@ -117,13 +117,13 @@ for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
         else
             o = o * " & \\textbf{" * string(mean(values_ct) ± std(values_ct)) * "} & \\textbf{" * string(mean(values_MCMC) ± std(values_MCMC)) * "} \\\\ \n"
         end
-        global table_s2 *= o
+        global table_s3 *= o
     end
 end
-table_s2 *= "\\hline \n"
+table_s3 *= "\\hline \n"
 closure_rate = only(mean(model_runs["0908"][:closure], dims=1))
 o = L"Closure rate ($\mathrm{m^2\,s^{-1}}$)" * " & \\multicolumn{2}{" * string(mean(closure_rate) ± std(closure_rate)) * "} \\\\ \n"
-table_s2 *= o
+table_s3 *= o
 closure_rate = only(mean(model_runs["2108"][:closure], dims=1))
 o = " & \\multicolumn{2}{\\textbf{" * string(mean(closure_rate) ± std(closure_rate)) * "}} \\\\ \n"
-table_s2 *= o
+table_s3 *= o

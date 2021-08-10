@@ -32,35 +32,37 @@ savefig(figuredir * "figure4.png")
 fig = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured)[1]
 savefig(figuredir * "figure5.png")
 
-# ### Figures from supllementary material
+# ### Figures and Tables from supllementary material
 #
+# Table S1 was produced manually from elements of :depth in
+# ctd309/ctd265 dictionaries, e.g. ctd309["0908"][:depth]
 
-# ### Fig. .. : water pressure and temperature
+# ### Fig. S1: water pressure and temperature
 R.plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
-savefig(figuredir * "pw_temp.png")
-
-# #### Fig. S1: Opening rates
-R.plot_opening(mid_309_265, model_runs)
 savefig(figuredir * "figure_s1.png")
 
-# #### Fig. S2: Closure rate
-R.plot_closure(mid_309_265, model_runs)
+# #### Fig. S2: Opening rates
+R.plot_opening(mid_309_265, model_runs)
 savefig(figuredir * "figure_s2.png")
 
-# #### Fig. S3: heat transfer parameters extended, with estimated surface temperature
-fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+# #### Fig. S3: Closure rate
+R.plot_closure(mid_309_265, model_runs)
 savefig(figuredir * "figure_s3.png")
-# save tale to text file
-write(tabledir * "table_s1.tex", "% Contens of Table S1\n" * table)
 
-# #### Fig. S4: heat transfer parameters of each experiment
+# #### Fig. S4: heat transfer parameters extended, with estimated surface temperature
+fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+savefig(figuredir * "figure_s4.png")
+# save table to text file
+write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table)
+
+# #### Fig. S5: heat transfer parameters of each experiment
 R.plot_heat_params_timeresolved([z_eq, tau_eq, tau_w],
                                 [L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})"],
                                 [nothing, nothing, tauw_measured])
-savefig(figuredir * "figure_s4.png")
+savefig(figuredir * "figure_s5.png")
 
-# Also save table S2 (produced in size_evolution_models.jl):
-write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table_s2)
+# Also save table S3 (produced in size_evolution_models.jl):
+write(tabledir * "table_s3.tex", "% Contens of Table S3\n" * table_s3)
 
 # CSV files
 using DelimitedFiles
