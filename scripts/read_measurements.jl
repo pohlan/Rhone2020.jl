@@ -143,7 +143,7 @@ e_m = 0.002 # error of mass in kg (small influence)
 #              Depths of CTDs                #
 # ------------------------------------------ #
 
-e_dz = 0.5 # estimated error of vertical distance in m
+e_dz = 1.0 # estimated error of vertical distance in m
 
 # depths of ctds in m for each day [ctd309, ctd265, ctd145]
 # upper 100m: add 0.04*(depth-100m),; 104m measured under tension
