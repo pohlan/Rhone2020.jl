@@ -11,6 +11,7 @@ const R20 = Rhone2020
 import PyPlot
 const Plt = PyPlot
 #Plt.pygui(true) # figure appears in window
+Plt.pygui(false) # figure does not appear in window
 
 
 using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
@@ -22,6 +23,10 @@ using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 #
 # # surface DEM swisstopo SwissAlti3D (2m posting)
 # files_surf = ["https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_267$(i)-116$(j)/swissalti3d_2019_267$(i)-116$(j)_2_2056_5728.tif" for i=1:3, j=0:2][:]
+#
+## Ortho photos
+# files_ortho_highres = ["https://data.geo.admin.ch/ch.swisstopo.swissimage-dop10/swissimage-dop10_2020_267$(i)-116$(j)/swissimage-dop10_2020_267$(i)-116$(j)_0.1_2056.tif" for i=2:2, j=0:1][:]
+# files_ortho = ["https://data.geo.admin.ch/ch.swisstopo.swissimage-dop10/swissimage-dop10_2020_267$(i)-116$(j)/swissimage-dop10_2020_267$(i)-116$(j)_2_2056.tif" for i=2:2, j=0:1][:]
 #
 # # outline of Switzerland
 # # https://www.swisstopo.admin.ch/de/geodata/landscape/boundaries3d.html
@@ -37,14 +42,22 @@ using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 # file_bed = "07_GlacierBed_SGI/B43-03_GlacierBed.tif"
 #
 # # download
-# destdir = mkpath(joinpath(R20.datadir, "topography"))
-# zipfile_bed = R20.download_file_to_dir(zipfile_bed, destdir)
-# zipfile_outline = R20.download_file_to_dir(zipfile_outline, destdir)
-# files_surf = [R20.download_file_to_dir(f, destdir) for f in files_surf]
-# zipfile_CH = R20.download_file_to_dir(zipfile_CH, destdir)
-# # merge tifs into one
+# destdir = mkpath(joinpath(R20.datadir, "geodata/swisstopo/tmp-surf"))
+# # zipfile_bed = R20.download_file_to_dir(zipfile_bed, destdir)
+# # zipfile_outline = R20.download_file_to_dir(zipfile_outline, destdir)
+# # # merge tifs into one
+# files_surf = [R20.download_file_to_dir(f, destdir) for f in files_ortho]
 # file_surf = joinpath(destdir, "surface_DEM.tif")
 # run(`gdal_merge.py -of GTiff -o $file_surf $files_surf`)
+
+# # # # files_surf = [R20.download_file_to_dir(f, destdir) for f in files_surf]
+# destdir = mkpath(joinpath(R20.datadir, "geodata/swisstopo/tmp-ortho"))
+# files_ortho = [R20.download_file_to_dir(f, destdir) for f in files_ortho]
+# # # merge tifs into one
+# file_ortho = joinpath(destdir, "ortho.tif")
+# run(`gdal_merge.py -co COMPRESS=JPEG -co PHOTOMETRIC=YCBCR -of GTiff -o $file_ortho $files_ortho`)
+
+# zipfile_CH = R20.download_file_to_dir(zipfile_CH, destdir)
 #
 # # unzip (requires unzip)
 # run(`unzip -o $zipfile_outline -d $destdir`)
@@ -55,6 +68,10 @@ using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 #
 # run(`unzip -o $zipfile_CH $folder_CH -d $destdir`) # why is this still in the folders?
 # shpfile_CH = joinpath(destdir, "BOUNDARIES_2021/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp")
+
+
+
+
 
 # ------------------------------------------ #
 #          Load data from data folder        #
@@ -126,6 +143,13 @@ function boxcar(A, window)
 end
 surf = boxcar(surf, 3)
 #thick = boxcar(thick, 10)
+
+# orthophoto (load as Array{Uint8, 3} for pyplot)
+file_ortho = swisstopodir * "ortho.tif"
+#ortho = Plt.imread(file_ortho)
+ortho = ArchGDAL.readraster(file_ortho)
+thin = 1
+ortho = ortho[1:thin:end, 1:thin:end,:];
 
 # borehole coordinates
 BH_file = fielddir * "BH_coordinates.csv"
@@ -309,3 +333,46 @@ Plt.text(0.06, 1-0.02*heightRhone/heightCH, L"$\bf{a}$", transform=ax.transAxes,
 Plt.text(BH_easting[1]-15, BH_northing[1]+30.0, "b", fontsize=fs_panellabels)
 
 Plt.gcf()
+Plt.savefig("../../products/paper_figures/figure1.png")
+
+###
+# Plot orthoimage and associated data
+###
+Plt.figure(figsize=(6,8), dpi=400)
+Plt.imshow(permutedims(ortho, [2,1,3]), aspect="equal",
+           extent= [2672, 2673, 1160, 1162])
+# glacier outline
+outl = hcat([[p.x,p.y] for p in outline.points]...);
+Plt.plot(outl[1,:]/1e3, outl[2,:]/1e3, lw=3)
+
+# BH/AM coordinates
+p1 = Plt.scatter(BH_easting[[1,2,4]], BH_northing[[1,2,4]], 30, "k", "o") # unactivated BH
+p2 = Plt.scatter(BH_easting[[3,5]], BH_northing[[3,5]], 50, "k", "x") # AM
+
+Plt.annotate("BH11", (BH_easting[1]-0.05, BH_northing[1]-0.005))
+Plt.annotate("BH12", (BH_easting[2]-0.05, BH_northing[2]-0.01))
+Plt.annotate("AM13/BH13", (BH_easting[3]-0.1, BH_northing[3]-0.005))
+Plt.annotate("BH14", (BH_easting[4]+0.02, BH_northing[4]-0.015))
+Plt.annotate("AM15/BH15", (BH_easting[5]-0.1, BH_northing[5]))
+
+# stream
+str1 = hcat([[p.x,p.y] for p in stream1.points]...);
+str2 = hcat([[p.x,p.y] for p in stream2.points]...);
+p4 = Plt.plot(str1[1,:]/1e3, str1[2,:]/1e3, "k--", lw=1)
+Plt.plot(str2[1,:]/1e3, str2[2,:]/1e3, "k--", lw=1)
+p3 = Plt.scatter(str1[1,1]/1e3, str1[2,1]/1e3, 30, "k", "<")
+Plt.scatter(str2[1,1]/1e3, str2[2,1]/1e3, 30, "k", "<")
+
+# full extent
+# Plt.xlim([2672, 2673])
+# Plt.ylim([1160, 1161.6])
+
+Plt.xlim([2672.2, 2672.5])
+Plt.ylim([1160.75, 1161.25])
+Plt.xticks(2672.2:0.1:2672.5,2672.2:0.1:2672.5)
+Plt.xlabel("Easting (km)")
+Plt.ylabel("Northing (km)")
+
+Plt.savefig("../../products/paper_figures/figure_s0.png")
+
+Plt.close("all")
