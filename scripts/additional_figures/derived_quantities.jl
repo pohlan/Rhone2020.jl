@@ -2,7 +2,7 @@
 #
 ## Run the calculations #hide
 include("../read_measurements.jl"); #hide
-include("../derive_quantities.jl"); #hide
+include("../derived_quantities.jl"); #hide
 
 # Filled symbols: experiments picked for results in the paper, criteria..
 #

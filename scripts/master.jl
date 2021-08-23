@@ -15,9 +15,10 @@ set_n_partcl([1000, 20000][ind]) # fig. 4 used 20000 to make a nice looking hist
 pygui(false)
 
 # run all scripts for computations
-include("read_measurements.jl") # load all data
-include("derive_quantities.jl") # compute hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor
+include("read_measurements.jl") # load all data (also runs calibration.jl)
+include("derived_quantities.jl") # compute hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor
 include("size_evolution_models.jl") # run ct-model and free-gradient model
 include("heat_transfer.jl") # comput thermodynamic variables (equilibrium offset-temperature etc.)
 include("paper_figures.jl") # plot all figures of the paper and supplements and save them in the products folder
-                            # also writes tables and CSV files
+                            # also writes tables and CSV files.
+                            # Also runs files: overview-map.jl

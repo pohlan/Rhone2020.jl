@@ -4,7 +4,7 @@
 using PyPlot #hide
 
 include("../read_measurements.jl"); #hide
-include("../derive_quantities.jl"); #hide
+include("../derived_quantities.jl"); #hide
 use_progress_meter = false #hide
 include("../size_evolution_models.jl"); #hide
 include("../heat_transfer.jl"); #hide

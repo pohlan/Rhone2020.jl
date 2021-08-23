@@ -11,14 +11,13 @@ const R20 = Rhone2020
 import PyPlot
 const Plt = PyPlot
 #Plt.pygui(true) # figure appears in window
-Plt.pygui(false) # figure does not appear in window
-
+#Plt.pygui(false) # figure does not appear in window
 
 using GeoData, Shapefile, ArchGDAL, DelimitedFiles, LaTeXStrings
 
 # ------------------------------------------ #
 #             Download data directly from SwissTopo & unzip          #
-#             not necessary anymore as data is in zip-file          #
+#             not necessary anymore as data is in data submission
 # ------------------------------------------ #
 #
 # # surface DEM swisstopo SwissAlti3D (2m posting)

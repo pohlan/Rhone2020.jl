@@ -1427,7 +1427,7 @@ function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     subfigs[2].suptitle(L"\bf{AM13}", y=0.98)
     subfigs[1].supxlabel("Time", y=0.02)
 
-gcf()
+    gcf()
 
 end
 

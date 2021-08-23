@@ -6,7 +6,7 @@ mkpath(figuredir)
 mkpath(tabledir)
 
 # #### Fig.1: Map
-include("../scripts/overview-map.jl")
+include("overview-map.jl")
 savefig(figuredir * "figure1.png")
 
 # Fig2 is a photo and sketch, i.e. not produced here.

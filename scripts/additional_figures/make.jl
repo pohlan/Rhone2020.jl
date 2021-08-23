@@ -8,12 +8,13 @@ tmp_outputdir = "tmp"
 mkpath(tmp_outputdir)
 pdfdir = joinpath(@__DIR__, "../../../products/additional_figures/")
 mkpath(pdfdir)
-# execute=true produces plots
 
+# Run Literate.jl over the files:
+# (execute=true produces plots)
 #Literate.markdown("paper_figures.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("raw_data.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("calibration_plots.jl", tmp_outputdir; execute=true, documenter=false)
-Literate.markdown("derived_quantities.jl", tmp_outputdir; execute=true, documenter=false)
+Literate.markdown("derived_quantities_extra.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("other_figures.jl", tmp_outputdir; execute=true, documenter=false)
 
 # to convert .md files to pdfs, linux command, e.g.:
