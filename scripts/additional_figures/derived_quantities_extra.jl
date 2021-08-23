@@ -1,4 +1,8 @@
 # # Results of all experiments
+
+using Rhone2020  #hide
+const R = Rhone2020  #hide
+
 #
 ## Run the calculations #hide
 include("../read_measurements.jl"); #hide

@@ -1,6 +1,9 @@
 # # Figures neither in the paper nor in the supplement
 #
 
+using Rhone2020  #hide
+const R = Rhone2020  #hide
+
 using PyPlot #hide
 
 include("../read_measurements.jl"); #hide

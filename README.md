@@ -18,3 +18,21 @@ This folder contains julia files used to produce the `.pdf` files in the `produc
 - `other_figures.jl`: Moody plot and some plots that show heat transfer data (Figure 5 in paper) differently
 
 - `make.jl`: produces the `.pdf` files and saves them in the `products/additional_figures` folder.
+
+## Dependencies
+
+All Julia dependencies are installed when installing this package with
+(at terminal prompt)
+```
+$ git clone url_of_this_repo
+$ cd Rhone2020.jl/scripts
+$ julia --project
+julia> ]
+Rhone2020 pkg> instantiate
+```
+
+External dependencies which need to be installed by hand/via the Linux
+package manager/homebrew/etc:
+- pandoc
+- unzip
+- gdal (in particular gdal_merge.py)

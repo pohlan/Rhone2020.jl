@@ -26,6 +26,9 @@
 #
 # - 1x DCX-22AA stage sensor (installed a few metres upstream of artificial moulins), measuring pressure and temperature in the stream and the atmosphere
 
+using Rhone2020  #hide
+const R = Rhone2020  #hide
+
 using PyPlot #hide
 include(joinpath(@__DIR__, "../read_measurements.jl")); #hide
 

@@ -11,7 +11,6 @@ mkpath(pdfdir)
 
 # Run Literate.jl over the files:
 # (execute=true produces plots)
-#Literate.markdown("paper_figures.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("raw_data.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("calibration_plots.jl", tmp_outputdir; execute=true, documenter=false)
 Literate.markdown("derived_quantities_extra.jl", tmp_outputdir; execute=true, documenter=false)

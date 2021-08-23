@@ -2,6 +2,9 @@
 #
 # The three Keller DCX-22-CTD sensors 205309, 207265 and 205145 and are referred to as CTD-309, CTD-265 and CTD-145.
 
+using Rhone2020  #hide
+const R = Rhone2020  #hide
+
 include("../read_measurements.jl"); #hide
 using PyPlot, LaTeXStrings; #hide
 
