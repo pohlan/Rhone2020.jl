@@ -337,7 +337,7 @@ Plt.savefig("../../products/paper_figures/figure1.png")
 ###
 # Plot orthoimage and associated data
 ###
-Plt.figure(figsize=(6,8), dpi=400)
+Plt.figure(figsize=(6*9/6,8*9/6), dpi=400)
 Plt.imshow(permutedims(ortho, [2,1,3]), aspect="equal",
            extent= [2672, 2673, 1160, 1162])
 # glacier outline
@@ -348,11 +348,11 @@ Plt.plot(outl[1,:]/1e3, outl[2,:]/1e3, lw=3)
 p1 = Plt.scatter(BH_easting[[1,2,4]], BH_northing[[1,2,4]], 30, "k", "o") # unactivated BH
 p2 = Plt.scatter(BH_easting[[3,5]], BH_northing[[3,5]], 50, "k", "x") # AM
 
-Plt.annotate("BH11", (BH_easting[1]-0.05, BH_northing[1]-0.005))
-Plt.annotate("BH12", (BH_easting[2]-0.05, BH_northing[2]-0.01))
-Plt.annotate("AM13/BH13", (BH_easting[3]-0.1, BH_northing[3]-0.005))
-Plt.annotate("BH14", (BH_easting[4]+0.02, BH_northing[4]-0.015))
-Plt.annotate("AM15/BH15", (BH_easting[5]-0.1, BH_northing[5]))
+Plt.annotate("BH11", (BH_easting[1]-0.0335, BH_northing[1]-0.005))
+Plt.annotate("BH12", (BH_easting[2]-0.035, BH_northing[2]-0.01))
+Plt.annotate("AM13/BH13", (BH_easting[3]-0.07, BH_northing[3]-0.005))
+Plt.annotate("BH14", (BH_easting[4]+0.01, BH_northing[4]))
+Plt.annotate("AM15/BH15", (BH_easting[5]-0.07, BH_northing[5]))
 
 # stream
 str1 = hcat([[p.x,p.y] for p in stream1.points]...);
@@ -372,6 +372,6 @@ Plt.xticks(2672.2:0.1:2672.5,2672.2:0.1:2672.5)
 Plt.xlabel("Easting (km)")
 Plt.ylabel("Northing (km)")
 
-Plt.savefig("../../products/paper_figures/figure_s0.png")
+Plt.savefig("../../products/paper_figures/figure_s0.png", bbox_inches="tight")
 
 Plt.close("all")
