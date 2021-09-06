@@ -149,7 +149,7 @@ e_dz = 1.0 # estimated error of vertical distance in m
 # upper 100m: add 0.04*(depth-100m),; 104m measured under tension
 # lower 100m: add 0.01*depth; 101m measured under tension
 
-ctd309["0808"][:depth], ctd265["0808"][:depth] = Particles.(n_partcl, Normal.((62.4, 164.7), e_dz))
+ctd309["0808"][:depth], ctd265["0808"][:depth] = Particles.(n_partcl, Normal.((62.4, 164.6), e_dz))
 ctd309["0908"][:depth], ctd265["0908"][:depth] = Particles.(n_partcl, Normal.((121.1, 171.7), e_dz))
 ctd309["1008"][:depth], ctd265["1008"][:depth] = Particles.(n_partcl, Normal.((120.9, 171.7), e_dz))
 ctd309["1108"][:depth], ctd265["1108"][:depth] = Particles.(n_partcl, Normal.((121.0, 171.7), e_dz))
