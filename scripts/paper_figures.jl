@@ -68,6 +68,6 @@ write(tabledir * "table_s3.tex", "% Contens of Table S3\n" * table_s3)
 using DelimitedFiles
 for (fl, daystr) in [("SQ_09_08_2020.csv", "0908"), ("SQ_21_08_2020.csv", "2108")]
     writedlm(tabledir * fl, ["Time" "S [m^2]" "std_S" "Q [m^3/s]" "std_Q" "dphi/dz [Pa/m]" "std dphi/dz" "f []" "std f";
-                             mid_309_265[daystr][:t_inj] mean.(mid_309_265[daystr][:S]) std.(mid_309_265[daystr][:S]) mean.(ctd265[daystr][:Q]) std.(ctd265[daystr][:Q]) mean.(mid_309_265[daystr][:dphi_dz]) std.(mid_309_265[daystr][:dphi_dz]) mean.(mid_309_265[daystr][:f]) std.(mid_309_265[daystr][:f])],
+                             mid_309_265[daystr][:t_inj] pmean.(mid_309_265[daystr][:S]) pstd.(mid_309_265[daystr][:S]) pmean.(ctd265[daystr][:Q]) pstd.(ctd265[daystr][:Q]) pmean.(mid_309_265[daystr][:dphi_dz]) pstd.(mid_309_265[daystr][:dphi_dz]) pmean.(mid_309_265[daystr][:f]) pstd.(mid_309_265[daystr][:f])],
              ", ")
 end

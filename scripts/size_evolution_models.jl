@@ -32,9 +32,9 @@ for date in ["0908", "2108"]
     elseif date == "2108"
         gradT0 = -2e-3;
     end
-    Sinit_0 = mid_309_265[date][:S][1];
-    Sinit_std = std.(mid_309_265[date][:S][1]);
-    theta0 = [gradT0, mean.(Sinit_0)];
+    Sinit_0 = pmean(mid_309_265[date][:S][1]);
+    Sinit_std = pstd(mid_309_265[date][:S][1]);
+    theta0 = [gradT0, Sinit_0];
 
     # prior information
     dTmin, dTmax = -1e-2, -1e-6;
@@ -42,7 +42,7 @@ for date in ["0908", "2108"]
     logposterior = R.make_logpdf(date, mid_309_265, [dTmin, dTmax]);
 
     # emcee MCMC sampler:
-    thetas, accept_ratioe, logdensities, blobs = emcee(logposterior, make_theta0s(theta0, [mean.(Sinit_0), Sinit_std],
+    thetas, accept_ratioe, logdensities, blobs = emcee(logposterior, make_theta0s(theta0, [1e-3, Sinit_std],
                                                                                   logposterior, 6, hasblob=true),
                                                        niter=n_iterations, hasblob=true, use_progress_meter=use_progress_meter)
     thetas, accept_ratioe, logdensities, blobs = squash_walkers(thetas, accept_ratioe, logdensities, blobs); # puts all walkers into one
@@ -113,17 +113,17 @@ for (MCMC, c_t, description) in zip([:dSdt_MCMC, :dSdt_sensible_MCMC],
                       for k in 1:length(model_runs[date][MCMC][1]) ]
                     , dims=1))
         if date == "0908"
-            o = o * " & " * string(mean(values_ct) ± std(values_ct)) * " & " * string(mean(values_MCMC) ± std(values_MCMC)) * "\\\\ \n"
+            o = o * " & " * string(pmean(values_ct) ± pstd(values_ct)) * " & " * string(pmean(values_MCMC) ± pstd(values_MCMC)) * "\\\\ \n"
         else
-            o = o * " & \\textbf{" * string(mean(values_ct) ± std(values_ct)) * "} & \\textbf{" * string(mean(values_MCMC) ± std(values_MCMC)) * "} \\\\ \n"
+            o = o * " & \\textbf{" * string(pmean(values_ct) ± pstd(values_ct)) * "} & \\textbf{" * string(pmean(values_MCMC) ± pstd(values_MCMC)) * "} \\\\ \n"
         end
         global table_s3 *= o
     end
 end
 table_s3 *= "\\hline \n"
 closure_rate = only(mean(model_runs["0908"][:closure], dims=1))
-o = L"Closure rate ($\mathrm{m^2\,s^{-1}}$)" * " & \\multicolumn{2}{" * string(mean(closure_rate) ± std(closure_rate)) * "} \\\\ \n"
+o = L"Closure rate ($\mathrm{m^2\,s^{-1}}$)" * " & \\multicolumn{2}{" * string(pmean(closure_rate) ± pstd(closure_rate)) * "} \\\\ \n"
 table_s3 *= o
 closure_rate = only(mean(model_runs["2108"][:closure], dims=1))
-o = " & \\multicolumn{2}{\\textbf{" * string(mean(closure_rate) ± std(closure_rate)) * "}} \\\\ \n"
+o = " & \\multicolumn{2}{\\textbf{" * string(pmean(closure_rate) ± pstd(closure_rate)) * "}} \\\\ \n"
 table_s3 *= o

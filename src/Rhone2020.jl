@@ -685,7 +685,7 @@ Outputs:
 """
 function model_S(mid, date, dT_dz, S0)
     if typeof(dT_dz) == Float64 # for MCMC runs, only work with mean value (neglect uncertainties in Q and dphi/dz)
-        Q, dphi_dz, t = mean.(mid[date][:Q]), mean.(mid[date][:dphi_dz]), mid[date][:t_inj]
+        Q, dphi_dz, t = pmean.(mid[date][:Q]), pmean.(mid[date][:dphi_dz]), mid[date][:t_inj]
     else # ct-model, use Particle distributions for propagation of uncertainties
         Q, dphi_dz, t = mid[date][:Q], mid[date][:dphi_dz], mid[date][:t_inj]
     end
@@ -723,8 +723,8 @@ Outputs:
 """
 function make_logpdf(date, mid, dTdzrange)
     dTdzmin, dTdzmax = dTdzrange
-    S_data = mean.(mid[date][:S])
-    std_S = std.(mid[date][:S])
+    S_data = pmean.(mid[date][:S])
+    std_S = pstd.(mid[date][:S])
 
     return function(theta)
         dT_dz, S0 = theta
@@ -734,9 +734,9 @@ function make_logpdf(date, mid, dTdzrange)
             model_output = model_S(mid, date, dT_dz, S0)
 
             if typeof(model_output) == Array{Float64,1}
-                S_model = model_output
+                S_model = pmean.(model_output)
             else
-                S_model = model_output[1]
+                S_model = pmean.(model_output[1])
             end
             # Gaussian likelihood function
             L = -0.5*sum((S_data.-S_model).^2 ./std_S.^2)
@@ -786,13 +786,13 @@ function plot_conc_cali(calis, ctds, error_m, error_cond)
                                        solution, bucketsize)
             cond = Particles.(n_partcl, Normal.(calis[number][n][:,2], error_cond)) .-
                    Particles.(n_partcl, Normal.(calis[number][n][1,2], error_cond))
-            errorbar(mean.(conc), mean.(cond), xerr=std.(conc), yerr=std.(cond), label=days[n], fmt="+")
+            errorbar(pmean.(conc), pmean.(cond), xerr=pstd.(conc), yerr=pstd.(cond), label=days[n], fmt="+")
         end
 
         # plot the line of best fit:
         func = ctd["cond2conc"]
         cond_bestfit = range(0,stop=maximum(maximum.(calis[number])),length=100)
-        plot(mean.(func.(cond_bestfit)), cond_bestfit, color="black", label="best fit")
+        plot(pmean.(func.(cond_bestfit)), cond_bestfit, color="black", label="best fit")
         xlabel("salt concentration [g/l]")
 
         title("CTD-" * ctd["number"])
@@ -867,8 +867,8 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
     else
         window = window_am15
     end
-    dphi_smooth = boxcar(mean.(dphi), window)
-    std_smooth = boxcar(std.(dphi), window)
+    dphi_smooth = boxcar(pmean.(dphi), window)
+    std_smooth = boxcar(pstd.(dphi), window)
     axs[1].plot(ctd309[date][:t][idx], dphi_smooth, "k", linewidth=0.5, label="CTD-309/CTD-265")
     #axs[1].fill_between(ctd309[date][:t][idx], dphi_smooth.+std_smooth, dphi_smooth.-std_smooth, color="grey", alpha=0.5)
     if haskey(ctd145,date)
@@ -878,8 +878,8 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
         dphi = ((Particles.(n_partcl, Normal.(ctd309[date][:press][idx], error_p)) .-
                  Particles.(n_partcl, Normal.(ctd145[date][:press][idx], error_p)))   ./dl145_309 .- rhow*g) ./
                (rhow*g)
-        dphi_smooth = boxcar(mean.(dphi), window)
-        std_smooth = boxcar(std.(dphi), window)
+        dphi_smooth = boxcar(pmean.(dphi), window)
+        std_smooth = boxcar(pstd.(dphi), window)
         axs[1].plot(ctd309[date][:t][idx], dphi_smooth, "-.k", linewidth=0.5, label="CTD-145/CTD-309")
         #axs[1].fill_between(ctd309[date][:t][idx], dphi_smooth.+std_smooth,dphi_smooth.-std_smooth, color="grey", alpha=0.5)
     end
@@ -893,16 +893,16 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
     axs[1].set_title(date[1:2] * "-Aug")
 
     # Discharge
-    pl1 = axs[2].errorbar(mid1[date][:t_inj],mean.(ctd309[date][:Q])*1e3,yerr=std.(ctd309[date][:Q])*1e3,fmt="o",color="darkblue",markerfacecolor="none",label="CTD-309, unreliable")
-    pl2 = axs[2].errorbar(mid1[date][:t_inj],mean.(ctd265[date][:Q])*1e3,yerr=std.(ctd265[date][:Q])*1e3,fmt="o",color="orange",markerfacecolor="none",label="CTD-265, unreliable")
+    pl1 = axs[2].errorbar(mid1[date][:t_inj],pmean.(ctd309[date][:Q])*1e3,yerr=pstd.(ctd309[date][:Q])*1e3,fmt="o",color="darkblue",markerfacecolor="none",label="CTD-309, unreliable")
+    pl2 = axs[2].errorbar(mid1[date][:t_inj],pmean.(ctd265[date][:Q])*1e3,yerr=pstd.(ctd265[date][:Q])*1e3,fmt="o",color="orange",markerfacecolor="none",label="CTD-265, unreliable")
     if haskey(pick, date)
-        axs[2].errorbar(mid1[date][:t_inj][pick[date]],mean.(ctd309[date][:Q][pick[date]])*1e3,yerr=std.(ctd309[date][:Q][pick[date]])*1e3,fmt="o",color="darkblue",label="CTD-309, reliable")
-        axs[2].errorbar(mid1[date][:t_inj][pick[date]],mean.(ctd265[date][:Q][pick[date]])*1e3,yerr=std.(ctd265[date][:Q][pick[date]])*1e3,fmt="o",color="orange",label="CTD-265, reliable")
+        axs[2].errorbar(mid1[date][:t_inj][pick[date]],pmean.(ctd309[date][:Q][pick[date]])*1e3,yerr=pstd.(ctd309[date][:Q][pick[date]])*1e3,fmt="o",color="darkblue",label="CTD-309, reliable")
+        axs[2].errorbar(mid1[date][:t_inj][pick[date]],pmean.(ctd265[date][:Q][pick[date]])*1e3,yerr=pstd.(ctd265[date][:Q][pick[date]])*1e3,fmt="o",color="orange",label="CTD-265, reliable")
     end
     if haskey(ctd145, date)
-        pl3 = axs[2].errorbar(mid1[date][:t_inj],mean.(ctd145[date][:Q])*1e3,yerr=std.(ctd145[date][:Q])*1e3,fmt="o",color="darkgreen",markerfacecolor="none",label="CTD-145, unreliable")
+        pl3 = axs[2].errorbar(mid1[date][:t_inj],pmean.(ctd145[date][:Q])*1e3,yerr=pstd.(ctd145[date][:Q])*1e3,fmt="o",color="darkgreen",markerfacecolor="none",label="CTD-145, unreliable")
         if haskey(pick, date)
-            axs[2].errorbar(mid1[date][:t_inj][pick[date]],mean.(ctd145[date][:Q][pick[date]])*1e3,yerr=std.(ctd145[date][:Q][pick[date]])*1e3,fmt="o",color="darkgreen",label="CTD-145, reliable")
+            axs[2].errorbar(mid1[date][:t_inj][pick[date]],pmean.(ctd145[date][:Q][pick[date]])*1e3,yerr=pstd.(ctd145[date][:Q][pick[date]])*1e3,fmt="o",color="darkgreen",label="CTD-145, reliable")
         end
     end
     axs[2].set_ylabel(L"$Q\,\mathrm{[l/s]}$")
@@ -923,11 +923,11 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
 
     # Mean flow speed
     if haskey(ctd145,date)
-        pl2 = axs[3].errorbar(mid2[date][:t_inj], mean.(mid2[date][:v]), yerr=std.(mid2[date][:v]), fmt="ks", markerfacecolor="none")
-        pl3 = axs[3].errorbar(mid3[date][:t_inj], mean.(mid3[date][:v]), yerr=std.(mid3[date][:v]), fmt="kd", markerfacecolor="none")
+        pl2 = axs[3].errorbar(mid2[date][:t_inj], pmean.(mid2[date][:v]), yerr=pstd.(mid2[date][:v]), fmt="ks", markerfacecolor="none")
+        pl3 = axs[3].errorbar(mid3[date][:t_inj], pmean.(mid3[date][:v]), yerr=pstd.(mid3[date][:v]), fmt="kd", markerfacecolor="none")
         if haskey(pick, date)
-            axs[3].errorbar(mid2[date][:t_inj][pick[date]], mean.(mid2[date][:v][pick[date]]), yerr=std.(mid2[date][:v][pick[date]]), fmt="ks")
-            axs[3].errorbar(mid3[date][:t_inj][pick[date]], mean.(mid3[date][:v][pick[date]]), yerr=std.(mid3[date][:v][pick[date]]), fmt="kd")
+            axs[3].errorbar(mid2[date][:t_inj][pick[date]], pmean.(mid2[date][:v][pick[date]]), yerr=pstd.(mid2[date][:v][pick[date]]), fmt="ks")
+            axs[3].errorbar(mid3[date][:t_inj][pick[date]], pmean.(mid3[date][:v][pick[date]]), yerr=pstd.(mid3[date][:v][pick[date]]), fmt="kd")
         end
         if date == "2108"
             axs[3].legend((pl2,pl3),("surface/CTD-309","CTD-309/CTD-265"),
@@ -938,11 +938,11 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
             axs[3].legend((pl2,pl3),("CTD-145/CTD-309","CTD-309/CTD-265"))
         end
     else
-        pl1 = axs[3].errorbar(mid1[date][:t_inj],mean.(mid1[date][:v]),yerr=std.(mid1[date][:v]),fmt="ko",markerfacecolor="none",label="CTD-309, unreliable")
-        pl2 = axs[3].errorbar(mid2[date][:t_inj],mean.(mid2[date][:v]),yerr=std.(mid2[date][:v]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
+        pl1 = axs[3].errorbar(mid1[date][:t_inj],pmean.(mid1[date][:v]),yerr=pstd.(mid1[date][:v]),fmt="ko",markerfacecolor="none",label="CTD-309, unreliable")
+        pl2 = axs[3].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:v]),yerr=pstd.(mid2[date][:v]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
         if haskey(pick,date)
-            axs[3].errorbar(mid1[date][:t_inj][pick[date]],mean.(mid1[date][:v][pick[date]]),yerr=std.(mid1[date][:v][pick[date]]),fmt="ko",label="CTD-309, reliable")
-            axs[3].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:v][pick[date]]),yerr=std.(mid2[date][:v][pick[date]]),fmt="ks",label="CTD-265, reliable")
+            axs[3].errorbar(mid1[date][:t_inj][pick[date]],pmean.(mid1[date][:v][pick[date]]),yerr=pstd.(mid1[date][:v][pick[date]]),fmt="ko",label="CTD-309, reliable")
+            axs[3].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:v][pick[date]]),yerr=pstd.(mid2[date][:v][pick[date]]),fmt="ks",label="CTD-265, reliable")
         end
         axs[3].legend((pl1,pl2),("surface/CTD-309","CTD-309/CTD-265"))
     end
@@ -951,16 +951,16 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
 
     # Cross-sectional area
     if haskey(ctd145,date)
-        axs[4].errorbar(mid2[date][:t_inj],mean.(mid2[date][:S]),yerr=std.(mid2[date][:S]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
-        axs[4].errorbar(mid3[date][:t_inj],mean.(mid3[date][:S]),yerr=std.(mid3[date][:S]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
+        axs[4].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:S]),yerr=pstd.(mid2[date][:S]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
+        axs[4].errorbar(mid3[date][:t_inj],pmean.(mid3[date][:S]),yerr=pstd.(mid3[date][:S]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
         if haskey(pick, date)
-            axs[4].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:S][pick[date]]),yerr=std.(mid2[date][:S][pick[date]]),fmt="ks",label="CTD-265, reliable")
-            axs[4].errorbar(mid3[date][:t_inj][pick[date]],mean.(mid3[date][:S][pick[date]]),yerr=std.(mid3[date][:S][pick[date]]),fmt="kd",label="CTD-145, reliable")
+            axs[4].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:S][pick[date]]),yerr=pstd.(mid2[date][:S][pick[date]]),fmt="ks",label="CTD-265, reliable")
+            axs[4].errorbar(mid3[date][:t_inj][pick[date]],pmean.(mid3[date][:S][pick[date]]),yerr=pstd.(mid3[date][:S][pick[date]]),fmt="kd",label="CTD-145, reliable")
         end
     else
-        axs[4].errorbar(mid2[date][:t_inj],mean.(mid2[date][:S]),yerr=std.(mid2[date][:S]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
+        axs[4].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:S]),yerr=pstd.(mid2[date][:S]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
         if haskey(pick,date)
-            axs[4].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:S][pick[date]]),yerr=std.(mid2[date][:S][pick[date]]),fmt="ks",label="")
+            axs[4].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:S][pick[date]]),yerr=pstd.(mid2[date][:S][pick[date]]),fmt="ks",label="")
         end
     end
     axs[4].set_ylabel(L"$S\,\mathrm{[m^2]}$")
@@ -968,16 +968,16 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
 
     # friction factor
     if haskey(ctd145,date)
-        axs[5].errorbar(mid2[date][:t_inj],mean.(mid2[date][:f]),yerr=std.(mid2[date][:f]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
-        axs[5].errorbar(mid3[date][:t_inj],mean.(mid3[date][:f]),yerr=std.(mid3[date][:f]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
+        axs[5].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:f]),yerr=pstd.(mid2[date][:f]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
+        axs[5].errorbar(mid3[date][:t_inj],pmean.(mid3[date][:f]),yerr=pstd.(mid3[date][:f]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
         if haskey(pick, date)
-            axs[5].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:f][pick[date]]),yerr=std.(mid2[date][:f][pick[date]]),fmt="ks",label="CTD-265, reliable")
-            axs[5].errorbar(mid3[date][:t_inj][pick[date]],mean.(mid3[date][:f][pick[date]]),yerr=std.(mid3[date][:f][pick[date]]),fmt="kd",label="CTD-145, reliable")
+            axs[5].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:f][pick[date]]),yerr=pstd.(mid2[date][:f][pick[date]]),fmt="ks",label="CTD-265, reliable")
+            axs[5].errorbar(mid3[date][:t_inj][pick[date]],pmean.(mid3[date][:f][pick[date]]),yerr=pstd.(mid3[date][:f][pick[date]]),fmt="kd",label="CTD-145, reliable")
         end
     else
-        axs[5].errorbar(mid2[date][:t_inj],mean.(mid2[date][:f]),yerr=std.(mid2[date][:f]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
+        axs[5].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:f]),yerr=pstd.(mid2[date][:f]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
         if haskey(pick,date)
-            axs[5].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:f][pick[date]]),yerr=std.(mid2[date][:f][pick[date]]),fmt="ks",label="")
+            axs[5].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:f][pick[date]]),yerr=pstd.(mid2[date][:f][pick[date]]),fmt="ks",label="")
         end
         #axs[5].set_yscale("log")
     end
@@ -986,16 +986,16 @@ function plot_data_unselected(date, ctd309, ctd265, ctd145, mid1, mid2, mid3, pi
 
     # manning roughness
     if haskey(ctd145,date)
-        axs[6].errorbar(mid2[date][:t_inj],mean.(mid2[date][:n_manning]),yerr=std.(mid2[date][:n_manning]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
-        axs[6].errorbar(mid3[date][:t_inj],mean.(mid3[date][:n_manning]),yerr=std.(mid3[date][:n_manning]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
+        axs[6].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:n_manning]),yerr=pstd.(mid2[date][:n_manning]),fmt="ks",markerfacecolor="none",label="CTD-265, unreliable")
+        axs[6].errorbar(mid3[date][:t_inj],pmean.(mid3[date][:n_manning]),yerr=pstd.(mid3[date][:n_manning]),fmt="kd",markerfacecolor="none",label="CTD-145, unreliable")
         if haskey(pick, date)
-            axs[6].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:n_manning][pick[date]]),yerr=std.(mid2[date][:n_manning][pick[date]]),fmt="ks",label="CTD-265, reliable")
-            axs[6].errorbar(mid3[date][:t_inj][pick[date]],mean.(mid3[date][:n_manning][pick[date]]),yerr=std.(mid3[date][:n_manning][pick[date]]),fmt="kd",label="CTD-145, reliable")
+            axs[6].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:n_manning][pick[date]]),yerr=pstd.(mid2[date][:n_manning][pick[date]]),fmt="ks",label="CTD-265, reliable")
+            axs[6].errorbar(mid3[date][:t_inj][pick[date]],pmean.(mid3[date][:n_manning][pick[date]]),yerr=pstd.(mid3[date][:n_manning][pick[date]]),fmt="kd",label="CTD-145, reliable")
         end
     else
-        axs[6].errorbar(mid2[date][:t_inj],mean.(mid2[date][:n_manning]),yerr=std.(mid2[date][:n_manning]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
+        axs[6].errorbar(mid2[date][:t_inj],pmean.(mid2[date][:n_manning]),yerr=pstd.(mid2[date][:n_manning]),fmt="ks",markerfacecolor="none",label="CTD-309/CTD-265")
         if haskey(pick,date)
-            axs[6].errorbar(mid2[date][:t_inj][pick[date]],mean.(mid2[date][:n_manning][pick[date]]),yerr=std.(mid2[date][:n_manning][pick[date]]),fmt="ks",label="")
+            axs[6].errorbar(mid2[date][:t_inj][pick[date]],pmean.(mid2[date][:n_manning][pick[date]]),yerr=pstd.(mid2[date][:n_manning][pick[date]]),fmt="ks",label="")
         end
         #axs[6].set_yscale("log")
     end
@@ -1071,10 +1071,10 @@ function plot_CTD(date, ctd309, ctd265, ctd145, e_T, range)
     # temperature
     axs[3].plot(ctd309[date][:t][range], ctd309[date][:temp_PT][range], label="CTD-309",color="darkblue")
     axs[3].fill_between(ctd309[date][:t][range], ctd309[date][:temp_PT][range].-e_T, ctd309[date][:temp_PT][range].+e_T, color="darkblue", alpha=0.3, zorder=1)
-    #axs[3].fill_between(ctd309[date][:t_dpress][range_dpress], mean.(ctd309[date][:dpress][range_dpress]*ct)-std.(ctd309[date][:dpress][range_dpress]*ct), mean.(ctd309[date][:dpress][range_dpress]*ct)+std.(ctd309[date][:dpress][range_dpress]*ct), color="blue", zorder=2, label="CTD-309, T_melt range")
+    #axs[3].fill_between(ctd309[date][:t_dpress][range_dpress], pmean.(ctd309[date][:dpress][range_dpress]*ct)-pstd.(ctd309[date][:dpress][range_dpress]*ct), pmean.(ctd309[date][:dpress][range_dpress]*ct)+pstd.(ctd309[date][:dpress][range_dpress]*ct), color="blue", zorder=2, label="CTD-309, T_melt range")
     axs[3].plot(ctd265[date][:t][range], ctd265[date][:temp_PT][range], label="CTD-265",color="orange")
     axs[3].fill_between(ctd265[date][:t][range], ctd265[date][:temp_PT][range].-e_T, ctd265[date][:temp_PT][range].+e_T, color="orange", alpha=0.3, zorder=1)
-    #axs[3].fill_between(ctd265[date][:t_dpress][range_dpress], mean.(ctd265[date][:dpress][range_dpress]*ct)-std.(ctd265[date][:dpress][range_dpress]*ct), mean.(ctd265[date][:dpress][range_dpress]*ct)+std.(ctd265[date][:dpress][range_dpress]*ct), color="red", zorder=2, label="CTD-309, T_melt range")
+    #axs[3].fill_between(ctd265[date][:t_dpress][range_dpress], pmean.(ctd265[date][:dpress][range_dpress]*ct)-pstd.(ctd265[date][:dpress][range_dpress]*ct), pmean.(ctd265[date][:dpress][range_dpress]*ct)+pstd.(ctd265[date][:dpress][range_dpress]*ct), color="red", zorder=2, label="CTD-309, T_melt range")
     if haskey(ctd145,date)
         axs[3].plot(ctd145[date][:t][range],ctd145[date][:temp_PT][range], label="CTD-145",color="darkgreen")
         axs[3].fill_between(ctd145[date][:t][range], ctd145[date][:temp_PT][range].-e_T, ctd145[date][:temp_PT][range].+e_T, color="darkgreen", alpha=0.3, zorder=1)
@@ -1126,8 +1126,8 @@ function plot_closure(mid_309_265, model_runs)
 
     figure(figsize=(8,5))
     ax = subplot(1, 1, 1)
-    errorbar(mid_309_265["0908"][:t_inj] , mean.(model_runs["0908"][:closure]),yerr=std.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
-    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(mean.(model_runs["2108"][:closure])),yerr=std.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
+    errorbar(mid_309_265["0908"][:t_inj] , pmean.(model_runs["0908"][:closure]),yerr=pstd.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(pmean.(model_runs["2108"][:closure])),yerr=pstd.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
     yscale("log")
     xlabel("Time of the corresponding day")
     ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
@@ -1156,11 +1156,6 @@ function plot_opening(mid_309_265, model_runs)
     majorformatter = matplotlib.dates.DateFormatter("%H:%M")
     # majorlocator = matplotlib.dates.HourLocator(byhour=(11, 13, 15, 17))
     figure(figsize=(16,5))
-
-    Patch = PyPlot.matplotlib.patches.Patch
-    custom_legend = [Patch(facecolor="black", alpha = 0.6),
-                     Patch(facecolor="royalblue", alpha = 0.6),
-                     Patch(facecolor="grey", alpha = 0.6)]
 
     for (nd, (date, AM, lab)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"], [L"\bf{a}", L"\bf{b}"]))
         ax = subplot(1, 2, nd)
@@ -1221,12 +1216,12 @@ function plot_opening_closure(mid_309_265, model_runs)
     for (nd, (date, lab)) in enumerate(zip(["0908", "2108"], [L"\bf{a}", L"\bf{b}"]))
         ax = subplot(1, 2, nd)
         #ax1=PyPlot.axes([0.1, 0.1, 0.4, 0.8])  # left, bottom, width, height
-        a1 = errorbar(mid_309_265[date][:t_inj],mean.(model_runs[date][:dSdt_ct]), yerr=std.(model_runs[date][:dSdt_ct]),fmt="k.", ms=8)
+        a1 = errorbar(mid_309_265[date][:t_inj],pmean.(model_runs[date][:dSdt_ct]), yerr=pstd.(model_runs[date][:dSdt_ct]),fmt="k.", ms=8)
         a2 = errorbar(mid_309_265[date][:t_inj],mean(model_runs[date][:dSdt_MCMC]), yerr=std(model_runs[date][:dSdt_MCMC]),fmt="b.", ms=8)
         if date == "0908"
-            a3 = errorbar(mid_309_265[date][:t_inj],mean.(model_runs[date][:closure]),yerr=std.(model_runs[date][:closure]), fmt="g+", mew=2, ms=8)
+            a3 = errorbar(mid_309_265[date][:t_inj],pmean.(model_runs[date][:closure]),yerr=pstd.(model_runs[date][:closure]), fmt="g+", mew=2, ms=8)
         else
-            a4 = errorbar(mid_309_265[date][:t_inj],abs.(mean.(model_runs[date][:closure])),yerr=std.(model_runs[date][:closure]), fmt="gx", mew=2, ms=8)
+            a4 = errorbar(mid_309_265[date][:t_inj],abs.(pmean.(model_runs[date][:closure])),yerr=pstd.(model_runs[date][:closure]), fmt="gx", mew=2, ms=8)
         end
         ax.xaxis.set_major_formatter(majorformatter)
         # ax.xaxis.set_major_locator(majorlocator)
@@ -1337,7 +1332,7 @@ function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
         dz = mid_309_265[date][:dz]
         dpress = Particles.(n_partcl, Normal.(pressbot, e_p*300)) .-
                  Particles.(n_partcl, Normal.(presstop, e_p*100))
-        #dp_smooth = Particles.(n_partcl, Normal.(mean.(dpress), std.(dpress)))
+        #dp_smooth = Particles.(n_partcl, Normal.(pmean.(dpress), pstd.(dpress)))
         dphi_dz = dpress ./ dz .- rhow*g # compute hydraulic gradient, Pa/m
 
          # conversion to mH2O
@@ -1360,11 +1355,11 @@ function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                 ax = axesleft[nprops*(nd-1) + row]
             end
             if row == 1 # first row is for hydraulic gradient, manually
-                ax.plot(ctd309[date][:t][i], mean.(dphi_dz), "k", linewidth=0.5)
-                ax.fill_between(ctd309[date][:t][i], mean.(dphi_dz) .+ std.(dphi_dz), mean.(dphi_dz) .- std.(dphi_dz), color="grey")
+                ax.plot(ctd309[date][:t][i], pmean.(dphi_dz), "k", linewidth=0.5)
+                ax.fill_between(ctd309[date][:t][i], pmean.(dphi_dz) .+ pstd.(dphi_dz), pmean.(dphi_dz) .- pstd.(dphi_dz), color="grey")
             else
                 data = mid_309_265[date][prop][pick[date]]
-                ax.errorbar(t_inj, mean.(data), yerr=std.(data), fmt="kx", markersize=7)
+                ax.errorbar(t_inj, pmean.(data), yerr=pstd.(data), fmt="kx", markersize=7)
             end
 
             # logarithmic y-scale for some parameters
@@ -1544,10 +1539,10 @@ function plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, 
                 ax = axesleft[nprops*(nd-1) + row]
             end
 
-            ax.plot(ctd309[date][:t][i], mean.(top), color="darkblue", linewidth=2, label="upper sensor")
-            ax.plot(ctd309[date][:t][i], mean.(bot), color="orange", linewidth=2, label="lower sensor")
-            ax.fill_between(ctd309[date][:t][i], mean.(top) .+ std.(top), mean.(top) .- std.(top), color="darkblue", alpha=0.3, label="uncertainty")
-            ax.fill_between(ctd309[date][:t][i], mean.(bot) .+ std.(bot), mean.(bot) .- std.(bot), color="orange", alpha=0.3, label="uncertainty")
+            ax.plot(ctd309[date][:t][i], pmean.(top), color="darkblue", linewidth=2, label="upper sensor")
+            ax.plot(ctd309[date][:t][i], pmean.(bot), color="orange", linewidth=2, label="lower sensor")
+            ax.fill_between(ctd309[date][:t][i], pmean.(top) .+ pstd.(top), pmean.(top) .- pstd.(top), color="darkblue", alpha=0.3, label="uncertainty")
+            ax.fill_between(ctd309[date][:t][i], pmean.(bot) .+ pstd.(bot), pmean.(bot) .- pstd.(bot), color="orange", alpha=0.3, label="uncertainty")
             legend(custom_legend,
                    ("Upper sensor", "Lower sensor", "Uncertainty", "Uncertainty"),
                    ncol = 2,
@@ -1669,11 +1664,11 @@ function plot_model_outputs(mid_309_265, model_runs)
 
         # plot model vs. data
         ax = PyPlot.axes([left, bottomup, width, heightup])
-        pl1 = errorbar(t, mean.(mid_309_265[date][:S]), yerr=std.(mid_309_265[date][:S]), fmt="k+", zorder=3, markersize=10) # data
+        pl1 = errorbar(t, pmean.(mid_309_265[date][:S]), yerr=pstd.(mid_309_265[date][:S]), fmt="k+", zorder=3, markersize=10) # data
         [plot(t, S_MCMC[i], "grey", linewidth=0.3, zorder=1) for i in 1:5000:length(S_MCMC)] # model outputs
-        plot(t, mean.(S_ct)-std.(S_ct), "b", lw=1, zorder=2)
-        plot(t, mean.(S_ct)+std.(S_ct), "b", lw=1, zorder=2)
-        pl2 = fill_between(t, mean.(S_ct)-std.(S_ct), mean.(S_ct)+std.(S_ct), color="blue", alpha=0.1, zorder=2, label=L"Range for $c_t$ and initial $S$")
+        plot(t, pmean.(S_ct)-pstd.(S_ct), "b", lw=1, zorder=2)
+        plot(t, pmean.(S_ct)+pstd.(S_ct), "b", lw=1, zorder=2)
+        pl2 = fill_between(t, pmean.(S_ct)-pstd.(S_ct), pmean.(S_ct)+pstd.(S_ct), color="blue", alpha=0.1, zorder=2, label=L"Range for $c_t$ and initial $S$")
         ax.xaxis.set_major_formatter(majorformatter)
         ylabel(L"$S\,\mathrm{(m^2)}$")
         xlabel("Time")
@@ -1759,7 +1754,7 @@ function plot_dSdt_linear(mid, model_runs)
         ax=subplot(1,2,d)
 
         ## S measurements
-        pl1 = errorbar(mid[date][:t_inj],mean.(mid[date][:S]),yerr=std.(mid[date][:S]),fmt="+",color="black")
+        pl1 = errorbar(mid[date][:t_inj],pmean.(mid[date][:S]),yerr=pstd.(mid[date][:S]),fmt="+",color="black")
         ax.xaxis.set_major_formatter(majorformatter)
         xlabel("Time")
         ylabel(L"Cross-sectional area $S$ [$\mathrm{m^2}$]")
@@ -1772,9 +1767,9 @@ function plot_dSdt_linear(mid, model_runs)
         @. fct(xx,p) = p[1]+p[2]*xx
         para_weights = [0.5,0.5]
         dS_fit = curve_fit_MCMeasurements(fct, xdata, ydata, para_weights) # determine linear trend
-        trend1 = mean(dS_fit[1]).+mean(dS_fit[2])*xdata
-        trend2 = mean(dS_fit[1])+std(dS_fit[1]).+(mean(dS_fit[2])+std.(dS_fit[2]))*xdata
-        trend3 = mean(dS_fit[1])-std(dS_fit[1]).+(mean(dS_fit[2])-std.(dS_fit[2]))*xdata
+        trend1 = pmean(dS_fit[1]).+pmean(dS_fit[2])*xdata
+        trend2 = pmean(dS_fit[1])+pstd(dS_fit[1]).+(pmean(dS_fit[2])+pstd.(dS_fit[2]))*xdata
+        trend3 = pmean(dS_fit[1])-pstd(dS_fit[1]).+(pmean(dS_fit[2])-pstd.(dS_fit[2]))*xdata
         pl2 = fill_between(mid[date][:t_inj], trend2, trend3, color="lightblue")
 
         ## S from computed dS_dt
@@ -1783,10 +1778,10 @@ function plot_dSdt_linear(mid, model_runs)
         dt = (t_plot-mid[date][:t_inj][midpt])*1e-3/Dates.Millisecond(1)
 
         dS_dt = model_runs[date][:dSdt_ct] - model_runs[date][:closure]
-        dS_dt_mean = mean(dS_dt[isnan.(mean.(dS_dt)).==0],dims=1)
+        dS_dt_mean = mean(dS_dt[isnan.(pmean.(dS_dt)).==0],dims=1)
         S_calc = S_mean .+ dS_dt_mean .* dt
-        plot(mid[date][:t_inj], mean.(S_calc),"-",color="black")
-        pl3 = fill_between(mid[date][:t_inj], mean.(S_calc)-std.(S_calc), mean.(S_calc)+std.(S_calc), color="lightgrey", label="Scatter of model")
+        plot(mid[date][:t_inj], pmean.(S_calc),"-",color="black")
+        pl3 = fill_between(mid[date][:t_inj], pmean.(S_calc)-pstd.(S_calc), pmean.(S_calc)+pstd.(S_calc), color="lightgrey", label="Scatter of model")
 
         title(date[1:2] * "-Aug")
 
@@ -1820,10 +1815,10 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
         for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
             ax = subplot(length(parameters), 2, 2*(np-1)+nd)
             if measurement !== nothing
-                fill_between(1:length(parameter[date][:standard]), quantile(only(measurement[date]), 0.025), quantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
+                fill_between(1:length(parameter[date][:standard]), pquantile(only(measurement[date]), 0.025), pquantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
             end
             for (corr, col) in zip(keys(parameter[date]), ["green", "pink", "blue", "darkorange", "blueviolet"])
-                errorbar(1:length(parameter[date][corr]), mean.(parameter[date][corr]), yerr=std.(parameter[date][corr]), fmt="_", color=col, label=uppercasefirst(string(corr)), markersize=7)
+                errorbar(1:length(parameter[date][corr]), pmean.(parameter[date][corr]), yerr=pstd.(parameter[date][corr]), fmt="_", color=col, label=uppercasefirst(string(corr)), markersize=7)
             end
             xticks(2:2:length(parameter[date][:standard]))
             if date == "0908"
@@ -1946,8 +1941,8 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
             end
             for (x,coef) in enumerate(xticklabs) # loop over Nu parameterisations
                 mean_ = sum(p[date][coef])/length(p[date][coef])
-                std_ = max(std(mean_), std(mean.(p[date][coef])))
-                mean_ = mean(mean_)
+                std_ = max(pstd(mean_), std(pmean.(p[date][coef])))
+                mean_ = pmean(mean_)
                 if date == "0908"
                     o = o * " & " * string(round(mean_, digits=3) ± round(std_, digits=3))
                 elseif date == "2108"
