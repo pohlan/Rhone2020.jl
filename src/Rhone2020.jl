@@ -1796,7 +1796,7 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
     rcParams["font.size"] = 13
 
-    panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}"]
+    panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}", L"\bf{h}", L"\bf{i}", L"\bf{j}", L"\bf{k}"]
 
     figure(figsize=(10, 12), dpi=pixel_resolution)
     for (np, (parameter, measurement, y_label)) in enumerate(zip(parameters, measurements, y_labels))
@@ -1817,8 +1817,8 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
             elseif np == length(parameters)
                 xlabel("Index of tracer experiment")
             end
-            if date == "0908" && measurement !== nothing
-                legend(ncol=3, loc=(0.0, 0.01), framealpha = 0.4,
+            if date == "0908" && np == length(parameters) # measurement !== nothing
+                legend(ncol=3, loc="lower right", framealpha = 0.4,
                    columnspacing=1.0, fontsize=11, handlelength=1.0)
             end
             text(0.0, 1.05, panellabs[2*(np-1)+nd], transform=ax.transAxes, ha="right", va="bottom")

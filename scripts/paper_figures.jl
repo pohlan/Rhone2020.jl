@@ -56,9 +56,9 @@ savefig(figuredir * "figure_s4.png")
 write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table)
 
 # #### Fig. S5: heat transfer parameters of each experiment
-R.plot_heat_params_timeresolved([z_eq, tau_eq, tau_w],
-                                [L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})"],
-                                [nothing, nothing, tauw_measured])
+R.plot_heat_params_timeresolved([Nus, z_eq, tau_eq, tau_w, T_surf],
+                                [L"Nu", L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})", L"T_{surf}\,(\mathrm{°C})"],
+                                [nothing, nothing, nothing, tauw_measured, nothing])
 savefig(figuredir * "figure_s5.png")
 
 # Also save table S3 (produced in size_evolution_models.jl):
