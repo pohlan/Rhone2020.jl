@@ -1146,7 +1146,7 @@ function plot_opening(mid_309_265, model_runs)
                   "2108" => Dict())
     for date in ["0908", "2108"]
         # the results from the MCMC runs need to be averaged first to obtain the most likely time series
-        output[date][:dSdt_MCMC] = mean(model_runs[date][:dSdt_MCMC])
+        output[date][:dSdt_MCMC] = Particles.(n_partcl, Normal.(mean(model_runs[date][:dSdt_MCMC]), std(model_runs[date][:dSdt_MCMC])))
         output[date][:dSdt_ct] = model_runs[date][:dSdt_ct]
         output[date][:dSdt_frictional] = model_runs[date][:dSdt_ct] .- model_runs[date][:dSdt_sensible_ct]
     end
@@ -1160,24 +1160,15 @@ function plot_opening(mid_309_265, model_runs)
     for (nd, (date, AM, lab)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"], [L"\bf{a}", L"\bf{b}"]))
         ax = subplot(1, 2, nd)
 
-        model_colors = ["black", "royalblue", "grey"]
-        models = [:dSdt_ct, :dSdt_MCMC, :dSdt_frictional ]
-        model_means = []
-        for model in models
-            append!(model_means, mean(mean(output[date][model])))
-        end
-        sorting = sortperm(model_means)
+        cols = ["black", "grey", "royalblue"]
+        syms = ["x", "x", "o"]
+        labs = ["ct-gradient model, total",
+                 "Free-gradient model, total",
+                 "Frictional heat component"]
+        mods = [:dSdt_ct, :dSdt_MCMC, :dSdt_frictional ]
 
-        cols = model_colors[sorting]
-        mods = models[sorting]
-
-        for p in length(cols):-1:1
-            errorbar(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), yerr=std.(output[date][mods[p]]), color=cols[p], fmt="x", ms=8)
-            if p == 1
-                fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
-            else
-                fill_between(mid_309_265[date][:t_inj], mean.(output[date][mods[p-1]]), mean.(output[date][mods[p]]), color=cols[p], alpha=0.6)
-            end
+        for p in 1:length(cols)
+            errorbar(mid_309_265[date][:t_inj], pmean.(output[date][mods[p]]), yerr=pstd.(output[date][mods[p]]), color=cols[p], fmt=syms[p], ms=6, label=labs[p])
         end
 
         ax.xaxis.set_major_formatter(majorformatter)
@@ -1187,12 +1178,7 @@ function plot_opening(mid_309_265, model_runs)
             ylabel(L"Opening rate [$\mathrm{m^2/s}$]")
         end
         if date == "2108"
-            legend(custom_legend,
-                ("ct-gradient model, total",
-                 "Free-gradient model, total",
-                 "Frictional heat component"),
-                ncol = 1
-                )
+            legend()
         end
 
         xlabel("Time")
