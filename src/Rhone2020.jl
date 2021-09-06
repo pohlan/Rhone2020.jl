@@ -52,6 +52,8 @@ function set_n_partcl(n)
 end
 set_n_partcl(1000)
 
+# set resolution for all figures
+pixel_resolution = 300.      # dpi = dots per inch
 
 # ----------------------------------------------------------------- #
 #                                                                   #
@@ -768,7 +770,7 @@ function plot_conc_cali(calis, ctds, error_m, error_cond)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
     rcParams["font.size"] = 12
 
-    figure(figsize=(12,3))
+    figure(figsize=(12,3), dpi=pixel_resolution)
     for (c, number) in enumerate([309, 265, 145])
         # which ctd to take
         ctd = ctds[findfirst(in.(("number" => string(number)), ctds))]
@@ -816,7 +818,7 @@ function plot_temp_cali(ctds, idx, date; dTOBs=[], dTs=[])
     end
 
     # draw figure
-    figure(figsize=(12,3))
+    figure(figsize=(12,3), dpi=pixel_resolution)
     for (k, (ctd, i, dTOB, dT)) in enumerate(zip(ctds, idx, dTOBs, dTs))
         subplot(1, length(ctds), k)
         plot(ctd[date][:t][i], ctd[date][:temp_TOB][i], color="blue", label=L"$\Delta$TOB1 = " * dTOB * " °C")
@@ -1015,7 +1017,7 @@ function plot_example_traces(ctds, indices, date, tr)
     formatter = matplotlib.dates.DateFormatter("%M")
     msec_per_year = 3600*24*365*1e3
 
-    figure(figsize=(6,3))
+    figure(figsize=(6,3), dpi=pixel_resolution)
     ax=PyPlot.axes()
     for (ctd, idx, col) in  zip(ctds,
                     [indices[date][5][tr]:indices[date][6][tr],     # indices of ctd-145
@@ -1090,7 +1092,7 @@ end
 Plot temperature together with pressure melting temperature
 """
 function plot_temp(date, ctd309, ctd265, range, error_T)
-    figure(figsize=(12,6))
+    figure(figsize=(12,6), dpi=pixel_resolution)
     majorformatter = matplotlib.dates.DateFormatter("%H:%M")
     ax1=subplot(211)
     range_dpress = floor.(Int, range./120)
@@ -1124,7 +1126,7 @@ function plot_closure(mid_309_265, model_runs)
     rcParams["font.size"] = 14 # general
     majorformatter = matplotlib.dates.DateFormatter("%H:%M")
 
-    figure(figsize=(8,5))
+    figure(figsize=(8,5), dpi=pixel_resolution)
     ax = subplot(1, 1, 1)
     errorbar(mid_309_265["0908"][:t_inj] , pmean.(model_runs["0908"][:closure]),yerr=pstd.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
     errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(pmean.(model_runs["2108"][:closure])),yerr=pstd.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
@@ -1155,7 +1157,7 @@ function plot_opening(mid_309_265, model_runs)
     rcParams["font.size"] = 14 # general
     majorformatter = matplotlib.dates.DateFormatter("%H:%M")
     # majorlocator = matplotlib.dates.HourLocator(byhour=(11, 13, 15, 17))
-    figure(figsize=(16,5))
+    figure(figsize=(16,5), dpi=pixel_resolution)
 
     for (nd, (date, AM, lab)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"], [L"\bf{a}", L"\bf{b}"]))
         ax = subplot(1, 2, nd)
@@ -1196,7 +1198,7 @@ function plot_opening_closure(mid_309_265, model_runs)
     rcParams["font.size"] = 14 # general
     majorformatter = matplotlib.dates.DateFormatter("%H:%M")
     # majorlocator = matplotlib.dates.HourLocator(byhour=(11, 13, 15, 17))
-    figure(figsize=(16,5))
+    figure(figsize=(16,5), dpi=pixel_resolution)
 
     a1, a2, a3, a4 = (nothing for i=1:100)
     for (nd, (date, lab)) in enumerate(zip(["0908", "2108"], [L"\bf{a}", L"\bf{b}"]))
@@ -1292,7 +1294,7 @@ function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                   )
 
     # draw subplots
-    fig = plt.figure(figsize=(20,15))
+    fig = plt.figure(figsize=(20,15), dpi=pixel_resolution)
     subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
     axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
     axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
@@ -1476,7 +1478,7 @@ function plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, 
                   )
 
     # draw subplots
-    fig = plt.figure(figsize=(14,6))
+    fig = plt.figure(figsize=(14,6), dpi=pixel_resolution)
     subfigs = fig.subfigures(1, 2, width_ratios=[sum(widths)+mean(widths)*4*w_space, length(idx_plot["2108"])], wspace = 0.0)
     axesleft  = subfigs[1].subplots(length(props), 5, sharey="row", sharex="col", gridspec_kw=grid_dict_left)
     axesright = subfigs[2].subplots(length(props), 1, sharex="col", gridspec_kw=grid_dict_right)
@@ -1627,7 +1629,7 @@ function plot_model_outputs(mid_309_265, model_runs)
     rcParams["font.size"] = 15
     fs = 18 # font size for figure numbering
 
-    figure(figsize=(17,8))
+    figure(figsize=(17,8), dpi=pixel_resolution)
 
     ax, pl1, pl2 = (nothing for i=1:100)
     for (date, AM) in zip(["0908", "2108"], ["AM15", "AM13"])
@@ -1734,7 +1736,7 @@ function plot_dSdt_linear(mid, model_runs)
     custom_lines = [L2D([0], [0], color="k", linestyle="-")]
 
     # draw figure
-    figure(figsize=(18,7))
+    figure(figsize=(18,7), dpi=pixel_resolution)
     pl1, pl2, pl3 = (nothing for i=1:100)
     for (d, (date, midpt, lab)) in enumerate(zip(["0908", "2108"], [7, 9], [L"\bf{a}", L"\bf{b}"]))
         ax=subplot(1,2,d)
@@ -1796,7 +1798,7 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
 
     panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}"]
 
-    figure(figsize=(10, 12))
+    figure(figsize=(10, 12), dpi=pixel_resolution)
     for (np, (parameter, measurement, y_label)) in enumerate(zip(parameters, measurements, y_labels))
         for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
             ax = subplot(length(parameters), 2, 2*(np-1)+nd)
@@ -1845,7 +1847,7 @@ function plot_tauw_hist(tauw_calc, tauw_meas)
                      Patch(facecolor=(1.0, 0.7529411764705882, 0.796078431372549, 0.6), edgecolor=(1.0, 0.7529411764705882, 0.796078431372549, 1), lw=linew) # pink
     )
 
-    figure(figsize=(16,7))
+    figure(figsize=(16,7), dpi=pixel_resolution)
     for (nd, (date, lab)) in enumerate(zip(["0908", "2108"], [L"\bf{a}", L"\bf{a}"]))
         ax = subplot(2,1,nd)
         hist(Array(tauw_meas[date]), bins=100, color="black", alpha=0.2, density=true)
@@ -1905,9 +1907,9 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
     # draw figure
     if T_surf !== nothing
         paras = (; paras... , tau_surf = (L"\tau_{surf}\,(\mathrm{\degree C})", T_surf)) # if T_surf is plotted as well (supplements)
-        figure(figsize=(6,12))
+        figure(figsize=(6,12), dpi=pixel_resolution)
     else
-        figure(figsize=(6,10))
+        figure(figsize=(6,10), dpi=pixel_resolution)
     end
 
     table = ""
