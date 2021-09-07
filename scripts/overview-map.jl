@@ -372,6 +372,6 @@ Plt.xticks(2672.2:0.1:2672.5,2672.2:0.1:2672.5)
 Plt.xlabel("Easting (km)")
 Plt.ylabel("Northing (km)")
 
-Plt.savefig("../../products/paper_figures/figure_s0.png", bbox_inches="tight")
+Plt.savefig("../../products/paper_figures/figure_s1.png", bbox_inches="tight")
 
 Plt.close("all")

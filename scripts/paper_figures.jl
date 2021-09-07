@@ -6,8 +6,7 @@ mkpath(figuredir)
 mkpath(tabledir)
 
 # #### Fig.1: Map
-include("overview-map.jl")
-savefig(figuredir * "figure1.png")
+include("overview-map.jl") # also saves Fig. S1
 
 # Fig2 is a photo and sketch, i.e. not produced here.
 
@@ -37,7 +36,7 @@ savefig(figuredir * "figure5.png")
 # Table S1 was produced manually from elements of :depth in
 # ctd309/ctd265 dictionaries, e.g. ctd309["0908"][:depth]
 
-# Fig. S1: Aerial image, not produced here.
+# Fig. S1: Aerial image, is procuded in "overview-map.jl" (see above)
 
 # ### Fig. S2: water pressure and temperature
 R.plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
