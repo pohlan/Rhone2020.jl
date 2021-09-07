@@ -1128,8 +1128,8 @@ function plot_closure(mid_309_265, model_runs)
 
     figure(figsize=(8,5), dpi=pixel_resolution)
     ax = subplot(1, 1, 1)
-    errorbar(mid_309_265["0908"][:t_inj] , pmean.(model_runs["0908"][:closure]),yerr=pstd.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="AM15/09-Aug, positive")
-    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(pmean.(model_runs["2108"][:closure])),yerr=pstd.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="AM13/21-Aug, negative")
+    errorbar(mid_309_265["0908"][:t_inj] , pmean.(model_runs["0908"][:closure]),yerr=pstd.(model_runs["0908"][:closure]), fmt="k_", mew=2, ms=8, label="9-Aug/AM15, positive")
+    errorbar(mid_309_265["2108"][:t_inj] .- Day(12) ,abs.(pmean.(model_runs["2108"][:closure])),yerr=pstd.(model_runs["2108"][:closure]), fmt="g_", mew=2, ms=8, label="21-Aug/AM13, negative")
     yscale("log")
     xlabel("Time of the corresponding day")
     ylabel(L"$|v_c|\,[\mathrm{m^2/s}]$")
@@ -1159,18 +1159,19 @@ function plot_opening(mid_309_265, model_runs)
     # majorlocator = matplotlib.dates.HourLocator(byhour=(11, 13, 15, 17))
     figure(figsize=(16,5), dpi=pixel_resolution)
 
-    for (nd, (date, AM, lab)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"], [L"\bf{a}", L"\bf{b}"]))
+    for (nd, (date, tit, lab)) in enumerate(zip(["0908", "2108"], ["9-Aug/AM15", "21-Aug/AM13"], [L"\bf{a}", L"\bf{b}"]))
         ax = subplot(1, 2, nd)
 
         cols = ["black", "grey", "royalblue"]
-        syms = ["x", "x", "o"]
+        syms = ["_", "_", "o"]
+        symsize = [9, 9, 5]
         labs = ["ct-gradient model, total",
                  "Free-gradient model, total",
                  "Frictional heat component"]
         mods = [:dSdt_ct, :dSdt_MCMC, :dSdt_frictional ]
 
         for p in 1:length(cols)
-            errorbar(mid_309_265[date][:t_inj], pmean.(output[date][mods[p]]), yerr=pstd.(output[date][mods[p]]), color=cols[p], fmt=syms[p], ms=6, label=labs[p])
+            errorbar(mid_309_265[date][:t_inj], pmean.(output[date][mods[p]]), yerr=pstd.(output[date][mods[p]]), color=cols[p], fmt=syms[p], ms=symsize[p], label=labs[p])
         end
 
         ax.xaxis.set_major_formatter(majorformatter)
@@ -1184,7 +1185,7 @@ function plot_opening(mid_309_265, model_runs)
         end
 
         xlabel("Time")
-        title(AM * ", " * date[1:2] * "-Aug")
+        title(tit)
         text(-0.1, 1.05, lab, transform=ax.transAxes, ha="left", va="bottom", fontsize=19)
     end
     gcf()
@@ -1632,7 +1633,7 @@ function plot_model_outputs(mid_309_265, model_runs)
     figure(figsize=(17,8), dpi=pixel_resolution)
 
     ax, pl1, pl2 = (nothing for i=1:100)
-    for (date, AM) in zip(["0908", "2108"], ["AM15", "AM13"])
+    for (date, tit) in zip(["0908", "2108"], ["9-Aug/AM15", "21-Aug/AM13"])
 
         if date == "2108"
             global left = 0.95-width
@@ -1660,7 +1661,7 @@ function plot_model_outputs(mid_309_265, model_runs)
         ax.xaxis.set_major_formatter(majorformatter)
         ylabel(L"$S\,\mathrm{(m^2)}$")
         xlabel("Time")
-        title(AM * ", " * date[1:2] * "-Aug")
+        title(tit)
         if date == "0908"
             legend((pl1, custom_legend[5], custom_legend[1]),
                    ("Measurements", L"$c_t$-gradient model", "Free-gradient model"),
@@ -1796,11 +1797,11 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
     rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
     rcParams["font.size"] = 13
 
-    panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}", L"\bf{h}", L"\bf{i}", L"\bf{j}", L"\bf{k}"]
+    panellabs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}", L"\bf{h}", L"\bf{i}", L"\bf{j}", L"\bf{k}", L"\bf{l}", L"\bf{m}"]
 
     figure(figsize=(10, 12), dpi=pixel_resolution)
     for (np, (parameter, measurement, y_label)) in enumerate(zip(parameters, measurements, y_labels))
-        for (nd, (date, AM)) in enumerate(zip(["0908", "2108"], ["AM15", "AM13"]))
+        for (nd, (date, tit)) in enumerate(zip(["0908", "2108"], ["9-Aug/AM15", "21-Aug/AM13"]))
             ax = subplot(length(parameters), 2, 2*(np-1)+nd)
             if measurement !== nothing
                 fill_between(1:length(parameter[date][:standard]), pquantile(only(measurement[date]), 0.025), pquantile(only(measurement[date]), 0.975), label="Measured", color="grey", alpha=0.3)
@@ -1813,7 +1814,7 @@ function plot_heat_params_timeresolved(parameters, y_labels, measurements)
                 ylabel(y_label)
             end
             if np == 1
-                title(AM * ", " * date[1:2] * "-Aug")
+                title(tit)
             elseif np == length(parameters)
                 xlabel("Index of tracer experiment")
             end
@@ -1947,7 +1948,7 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
         ylabel(lab)
         xticks(1:length(xticklabs), ["" for i=1:length(xticklabs)])
         if p == Nus
-            legend(["09-Aug", "21-Aug"],
+            legend(["9-Aug/AM15", "21-Aug/AM13"],
                            loc="upper left",
                            ncol = 1,
                            handletextpad = 0.2,
@@ -1966,7 +1967,7 @@ function plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_meas
                                                          alpha=alph)
                 plot([xs[1]-0.06, xs[end]+0.06], [quantile(tw, 0.975), quantile(tw, 0.975)], color=col, linestyle="-", linewidth=1.0)
                 plot([xs[1]-0.06, xs[end]+0.06], [quantile(tw, 0.025), quantile(tw, 0.025)], color=col, linestyle="-", linewidth=1.0)
-                legend(custom_legend, ("Measured 09-Aug", "Measured 21-Aug"),
+                legend(custom_legend, ("Measured 9-Aug/AM15", "Measured 21-Aug/AM13"),
                        loc="upper right",
                        ncol = 1,
                        handletextpad = 0.5,

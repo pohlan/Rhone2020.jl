@@ -37,29 +37,38 @@ savefig(figuredir * "figure5.png")
 # Table S1 was produced manually from elements of :depth in
 # ctd309/ctd265 dictionaries, e.g. ctd309["0908"][:depth]
 
-# ### Fig. S1: water pressure and temperature
-R.plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
-savefig(figuredir * "figure_s1.png")
+# Fig. S1: Aerial image, not produced here.
 
-# #### Fig. S2: Opening rates
-R.plot_opening(mid_309_265, model_runs)
+# ### Fig. S2: water pressure and temperature
+R.plot_pw_Tw_supp(mid_309_265, pick, ctd309, ctd265, e_p, e_T, idx_plot, idx_gaps)
 savefig(figuredir * "figure_s2.png")
 
-# #### Fig. S3: Closure rate
-R.plot_closure(mid_309_265, model_runs)
+# #### Fig. S3: Opening rates
+R.plot_opening(mid_309_265, model_runs)
 savefig(figuredir * "figure_s3.png")
 
-# #### Fig. S4: heat transfer parameters extended, with estimated surface temperature
-fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+# #### Fig. S4: Closure rate
+R.plot_closure(mid_309_265, model_runs)
 savefig(figuredir * "figure_s4.png")
+
+# #### Fig. S5: heat transfer parameters extended, with estimated surface temperature
+fig, table = R.plot_heat_transfer_params(Nus, z_eq, tau_eq, tau_w, tau_diff, tauw_measured; T_surf)
+savefig(figuredir * "figure_s5.png")
 # save table to text file
 write(tabledir * "table_s2.tex", "% Contens of Table S2\n" * table)
 
-# #### Fig. S5: heat transfer parameters of each experiment
-R.plot_heat_params_timeresolved([Nus, z_eq, tau_eq, tau_w, T_surf],
-                                [L"Nu", L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})", L"T_{surf}\,(\mathrm{°C})"],
-                                [nothing, nothing, nothing, tauw_measured, nothing])
-savefig(figuredir * "figure_s5.png")
+# #### Fig. S6: heat transfer parameters of each experiment
+dtau = Dict()
+for k in keys(tau_w)
+    dtau[k] = Dict()
+    for corr in keys(tau_w[k])
+        dtau[k][corr] = tau_w[k][corr] .- tau_eq[k][corr]
+    end
+end
+R.plot_heat_params_timeresolved([Nus, z_eq, tau_eq, tau_w, dtau, T_surf],
+                                [L"Nu", L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})", L"\tau_{w}-\tau_\mathrm{eq}\,(\mathrm{°C})", L"T_{surf}\,(\mathrm{°C})"],
+                                [nothing, nothing, nothing, tauw_measured, nothing, nothing])
+savefig(figuredir * "figure_s6.png")
 
 # Also save table S3 (produced in size_evolution_models.jl):
 write(tabledir * "table_s3.tex", "% Contens of Table S3\n" * table_s3)
