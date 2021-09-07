@@ -20,6 +20,6 @@ include("read_measurements.jl") # load all data (also runs calibration.jl)
 include("derived_quantities.jl") # compute hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor
 include("size_evolution_models.jl") # run ct-model and free-gradient model
 include("heat_transfer.jl") # compute thermodynamic variables (equilibrium offset-temperature etc.)
-#include("paper_figures.jl") # plot all figures of the paper and supplements and save them in the products folder
-#                            # also writes tables and CSV files.
+include("paper_figures.jl") # plot all figures of the paper and supplements and save them in the products folder
+                            # also writes tables and CSV files.
                             # Also runs files: overview-map.jl

@@ -1239,16 +1239,16 @@ Fig. 3 in the paper.
 """
 function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
     dates = ["0808", "0908", "1008", "1108", "1308", "2108"]
-    props = [:dphi_dz, :Q, :v, :S, :f, :n_manning, :Re]
+    props = [:dphi_dz, :Q, :v, :S, :Re, :f, :n_manning]
     panel_labs = [L"\bf{a}", L"\bf{b}", L"\bf{c}", L"\bf{d}", L"\bf{e}", L"\bf{f}", L"\bf{g}"]
     ylabels = [#L"$p_w\,\mathrm{(mH_2O)}$",
                L"$\partial\phi/\partial z$ $\mathrm{(mH_2O\,m^{-1})}$",
                L"$Q$ $\mathrm{(m^3\,s^{-1})}$", # or in l/s ???
                L"$v$ $\mathrm{(m\,s^{-1})}$",
                L"$S$ $\mathrm{(m^2)}$",
+               L"$Re$",
                L"$f$",
-               L"$n'$ $(\mathrm{s\,m^{-1/3}})$",
-               L"$Re$"]
+               L"$n'$ $(\mathrm{s\,m^{-1/3}})$"]
     nprops = length(props)
 
     # font properties

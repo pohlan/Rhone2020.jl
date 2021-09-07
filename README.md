@@ -7,7 +7,7 @@ This repository contains the processing of data from experiments in artificial m
 - `derived_quantities.jl`: derives the hydraulic gradient, discharge, flow speed, cross-sectional area, friction factor and manning roughness
 - `size_evolution_models.jl`: runs both the ct-model and the free-gradient model
 - `heat_transfer.jl`: calculates all thermodynamic variables (e.g. equilibrium offset-temperature)
-- `paper_figures.jl`: produces figures for paper and supplements as well as table and CSV files of derived quantities and saves them in the `products` folder); uses `overviewmap.jl` to produce Fig. 1 in the paper
+- `paper_figures.jl`: produces figures for paper and supplements as well as table and CSV files of derived quantities and saves them in the `products` folder); uses `overviewmap.jl` to produce Fig. 1 in the paper and Fig. S1 in the supplements
 - `master.jl`: runs all the scripts
 
 #### `additional_figures`
