@@ -198,7 +198,7 @@ levels_bed = 2000.0:50:3000
 level_labels_bed = map(x -> "$(round(Int,x))", levels_bed)
 level_ind_bed = 1:1:length(level_labels_bed)
 
-Plt.figure(figsize=(14, 6))
+Plt.figure(figsize=(14, 6), dpi=300)
 
 # font sizes
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
