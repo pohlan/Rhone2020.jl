@@ -67,7 +67,7 @@ end
 R.plot_heat_params_timeresolved([Nus, z_eq, tau_eq, tau_w, dtau, T_surf],
                                 [L"Nu", L"z_\mathrm{eq}\,\mathrm{(m)}", L"\tau_\mathrm{eq}\,(\mathrm{°C})", L"\tau_{w}\,(\mathrm{°C})", L"\tau_{w}-\tau_\mathrm{eq}\,(\mathrm{°C})", L"T_{surf}\,(\mathrm{°C})"],
                                 [nothing, nothing, nothing, tauw_measured, nothing, nothing])
-savefig(figuredir * "figure_s6.png")
+savefig(figuredir * "figure_s6.png", bbox_inches="tight")
 
 # Also save table S3 (produced in size_evolution_models.jl):
 write(tabledir * "table_s3.tex", "% Contens of Table S3\n" * table_s3)
