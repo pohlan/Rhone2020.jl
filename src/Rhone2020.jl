@@ -1400,7 +1400,14 @@ function multiplot(mid_309_265, pick, ctd309, ctd265, e_p, idx_plot, idx_gaps)
                 format_xaxis(ax, Dict(:interval=>2))
             end
             ax.tick_params("x", pad=10., labelrotation=30.)
-            ax.margins(y=0.2) # so that ylabels don't overlap each other
+
+            if prop == :Re && date != "2108"
+                ax.margins(y=0.5) # so that ylabels don't overlap each other
+            elseif prop == :n_manning && date != "2108"
+                ax.margins(y=0.65)
+            else
+                ax.margins(y=0.2)
+            end
         end
     end
 
